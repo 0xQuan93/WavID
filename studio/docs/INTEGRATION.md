@@ -34,6 +34,8 @@ the standalone body's reset is separate in `src/standalone.css` and is not neede
 by the host. Render the studio inside the host's client boundary.
 
 ```jsx
+'use client'; // For hosts using React Server Components, such as Next.js.
+
 import { WavIdStudio } from './wavid/studio/WavIdStudio';
 import './wavid/styles.css';
 
@@ -71,6 +73,8 @@ when the host uses server components. The example intentionally supplies a fixed
 frame; the caller can change it through transport controls.
 
 ```jsx
+'use client';
+
 import { useMemo } from 'react';
 import { generateDefinition } from './wavid/core/index.mjs';
 import { WavIdRenderer } from './wavid/renderer/index';
@@ -227,7 +231,12 @@ metadata, not extra fields accepted by the strict portable parser. A standalone
 PNG cannot carry all the identity kit's contextual evidence by itself.
 
 Tests preserve original props, material/genome hashes and complete geometric
-trace digests for four frozen artists. Geometric agreement is distinct from
+paths for four frozen artists. Full trace digests are retained for the reference
+runtime; cross-runtime comparisons round only four scalar style fields to 12
+decimal places, never paths or identity commitments. Node 22 and Node 26 differ
+in some style values by at most 2.22e-16; each matched the original engine exactly
+within that runtime. See the renderer README for the measured boundary.
+Geometric agreement is distinct from
 pixel parity: the browser uses SVG approximations of the original film and
 background layers, and browser filter compositing varies. Do not describe a
 matching material hash as proof that two PNGs are byte-identical. Current

@@ -108,6 +108,49 @@ const loopUrl = await moduleUrl(
 );
 const {getQuantumQuilLoopSpec} = await import(loopUrl);
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+// Independent original-source captures, compared with the optimized renderer on
+// Node 22.23.2 / V8 12.4, Node 24.21.0 / V8 13.6 and Node 26.8.1 / V8 14.6.
+// All 12 frame sets match exactly within each runtime. Across Node 22 vs 24/26,
+// all path/dash strings match; 126 style scalars differ by <= 2.23e-16.
+// Only the four SVG opacity/width scalars are rounded in this TEST digest, to
+// 12 decimal places. Path coordinates, activity, RNG and identity hashes stay exact.
+// These supplemental hashes come from the ORIGINAL source, not a new renderer.
+const STYLE_GOLDENS = {
+  oxquan: {
+    0: '63baf3dd191ee729da76250c66ce5ba0f6ab4cfba0eb5c44348df667f5c00fb6',
+    88: '321d8affd293fb0571b0c70bbf403d0655b0933455710219d41650d6235e55a6',
+    239: 'f18f18c8628685d13b9b6773035d27aa13bfb8f8e4e2f25a594454b96a1f67f4',
+  },
+  godcloud: {
+    0: 'ce6b05030ebcfb6ff472cc1bca8691908c7f65f02d8771a94e442d1ca7703f66',
+    88: 'eb2e25b9b6cab874462a26dbecbad57f6c4e26634fa64883c792552e62488935',
+    239: '9401c757e7272a7cf37a87f78ec96d9120d79877953d27c5f52daa68861e161f',
+  },
+  bettercallzaal: {
+    0: 'b6091aaddebdc7abfc15c8780f38da1c1cb4174a0dac189ff6f8b03adf4504c7',
+    88: '705abc3fd38790af028201c79e812848e332f9d71ab9b32ab53ae1b8d38c8e2b',
+    239: 'e37b582dd0198cfcbde3ac74d54c87e6abff965e9ae8dd6f0cca3a07f5bb7f43',
+  },
+  frameworkfortune: {
+    0: 'd8092fddafecba9433e9a4dccfc8f6c9812f8a862a7f4354b44b552a5a052b66',
+    88: '1f87360ff92f95984287ed73c0e062d20dbd598e7f2ae11fcddc994d83525cc1',
+    239: '85e24ce439c2499c42b7807b696e85a27ec4eccde815a632263e6310d5b9bf65',
+  },
+};
+const STYLE_FIELDS = new Set(['opacity', 'accentOpacity', 'width', 'accentWidth']);
+const styleHash = value => createHash('sha256').update(JSON.stringify(value, (key, field) => {
+  if (!STYLE_FIELDS.has(key)) return field;
+  assert.ok(Number.isFinite(field), `Finite numeric style field required: ${key}`);
+  return Number(field.toFixed(12));
+})).digest('hex');
+const exactReferenceRuntime = process.arch === 'x64' && new Set([
+  '24.21.0/13.6.233.17-node.53',
+  '26.8.1/14.6.202.34-node.28',
+]).has(`${process.versions.node}/${process.versions.v8}`);
+function assertOriginalFrame(value, artist, frame, label) {
+  assert.equal(styleHash(value), STYLE_GOLDENS[artist][frame], `${label}: exact paths / 12-decimal styles`);
+  if (exactReferenceRuntime) assert.equal(hash(value), GOLDENS.fixtures[artist].frames[frame], `${label}: exact reference runtime`);
+}
 const TAU = Math.PI * 2;
 const fract = value => value - Math.floor(value);
 
@@ -133,6 +176,16 @@ test('Remotion string-seed goldens survive Unicode, cache reuse and eviction', (
   for (const [seed, expected] of GOLDENS.random) assert.equal(random(seed), expected);
 });
 
+test('cross-runtime digest preserves paths and meaningful style changes', () => {
+  const trace = {d:'M0.00,0.00 L1.00,1.00', accentD:'M0.00,1.00', dash:'1 2',
+    opacity:0.5230335617375422, accentOpacity:0.13, width:1, accentWidth:1.01, activity:0.3};
+  assert.equal(styleHash(trace), styleHash({...trace,opacity:0.5230335617375421}), 'measured last-bit drift is normalized');
+  for (const key of STYLE_FIELDS) assert.notEqual(styleHash(trace), styleHash({...trace,[key]:trace[key]+1e-9}), key);
+  for (const key of ['d','accentD','dash']) assert.notEqual(styleHash(trace), styleHash({...trace,[key]:trace[key]+' '}), key);
+  assert.notEqual(styleHash(trace), styleHash({...trace,activity:0.30000000000000004}), 'non-style numbers remain exact');
+  assert.throws(()=>styleHash({...trace,opacity:NaN}), /Finite numeric style/);
+});
+
 for (const [artist, golden] of Object.entries(GOLDENS.fixtures)) {
   test(`renderer preserves original material-v1 geometry: ${artist}`, async () => {
     const fixture = JSON.parse(await readFile(new URL(`../public/fixtures/${artist}.json`, import.meta.url), 'utf8'));
@@ -140,12 +193,15 @@ for (const [artist, golden] of Object.entries(GOLDENS.fixtures)) {
     assert.equal(canonicalSha256(props), golden.propsSha256, 'frozen renderer input must not drift');
     const {durationInFrames} = getQuantumQuilLoopSpec(props);
     assert.equal(durationInFrames, golden.duration);
-    for (const [frame, expectedHash] of Object.entries(golden.frames)) {
-      assert.equal(hash(fullFrame(props, Number(frame), durationInFrames)), expectedHash, `frame ${frame}`);
-      assert.equal(hash(prepareMaterialFrame(props, Number(frame), durationInFrames)), expectedHash, `prepared frame ${frame}`);
+    for (const frame of Object.keys(golden.frames)) {
+      const direct = fullFrame(props, Number(frame), durationInFrames);
+      const prepared = prepareMaterialFrame(props, Number(frame), durationInFrames);
+      assertOriginalFrame(direct, artist, frame, `frame ${frame}`);
+      assertOriginalFrame(prepared, artist, frame, `prepared frame ${frame}`);
+      assert.deepEqual(prepared, direct, 'preparation preserves every number exactly within the runtime');
     }
     // Revisiting the opening after warming caches must not mutate identity or output.
-    assert.equal(hash(fullFrame(props, 0, durationInFrames)), golden.frames[0], 'warm-cache opening');
+    assertOriginalFrame(fullFrame(props, 0, durationInFrames), artist, 0, 'warm-cache opening');
     assert.equal(canonicalSha256(props), golden.propsSha256, 'renderer must not mutate the definition');
   });
 }
@@ -175,7 +231,8 @@ test('real worker transports full-quality geometry and reuses its immutable defi
       const [data] = await response;
       assert.equal(data.id, id);
       assert.equal(data.error, undefined);
-      assert.equal(hash(data.traces), GOLDENS.fixtures.oxquan.frames[frame]);
+      assertOriginalFrame(data.traces, 'oxquan', frame, 'worker original-source parity');
+      assert.deepEqual(data.traces, fullFrame(fixture.expected.props, frame, 240), 'worker transports every number exactly within the runtime');
     }
   } finally { await worker.terminate(); }
 });

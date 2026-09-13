@@ -11,8 +11,11 @@ when archiving or reporting it.
   and renderer. Tests cover complete portable regeneration, tampering, strict
   inputs, checkpoint comparison, bounded worker requests and ZIP structure.
 - [x] Four frozen artists preserve original props/material/genome commitments
-  and complete geometric trace digests at frames 0, 88 and 239. Cache replay and
-  input immutability are covered.
+  and geometric paths at frames 0, 88 and 239. Reference-runtime raw digests are
+  retained; cross-runtime goldens normalize only four scalar style fields to 12
+  decimals. Measured Node 22/26 drift is at most 2.22e-16 and each matches the
+  original engine within its runtime. Cache replay and input immutability remain
+  covered; no production renderer or identity formula changed for this check.
 - [x] The release visual-noise helper is separately sourced from public-domain
   Mulberry32 and the documented UTF-16 polynomial. Original RNG and complete
   geometry regressions pass unchanged; pinned sources are retained.

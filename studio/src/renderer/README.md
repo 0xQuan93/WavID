@@ -126,3 +126,32 @@ For optional browser measurements, start Vite and an isolated Chromium CDP insta
 then run `STUDIO_URL=http://127.0.0.1:18993 CDP_PORT=19226 node tests/renderer-browser.mjs`.
 It checks seeking, identity replacement, cancellation/resumption and frame-to-SVG
 agreement as well as heartbeat timing. Its test harness is excluded from production.
+
+
+## Cross-runtime numeric boundary
+
+September 13 CI exposed a final-bit style difference on Node 22.23.2 (V8
+12.4.254.21-node.56). The original composition identified by SHA-256 above and this
+renderer were run side by side on Node 22.23.2, 24.21.0 and 26.8.1. All 12 complete
+frame sets matched **exactly within each runtime**. Between Node 22 and 24/26,
+every path coordinate string, dash string, trace count, activity and base width
+matched. Only 126 style values differed: 111 opacity values, 13 accent opacities
+and two accent widths; the largest absolute difference was 2.220446049250313e-16.
+
+One isolated cause is directly reproducible:
+`Math.pow(0.3425293929093508, 0.42)` returns `0.6376363907078255` on the tested
+Node 22 and `0.6376363907078254` on Node 26. That input comes from OxQuan trace
+row 16; its seed and vertical coordinate agree exactly, while the resulting
+opening opacity is `0.5230335617375422` versus `0.5230335617375421`.
+
+The renderer is unchanged. Tests add original-source digests that round only
+`opacity`, `accentOpacity`, `width` and `accentWidth` to 12 decimal places.
+Path/dash strings and other fields are hashed verbatim. Source, props, material,
+RNG and artifact commitments retain exact checks. The original complete digests
+are also asserted on the explicitly recorded x64 reference runtime pairs:
+Node 24.21.0 / V8 13.6.233.17-node.53 and Node 26.8.1 / V8 14.6.202.34-node.28.
+Other runtimes still run every geometry regression using the style-only digest.
+Direct/prepared and worker/direct comparisons require exact same-runtime equality.
+A regression confirms that path changes, 1e-9 style changes, non-style numeric
+changes and non-finite style values remain detectable. No runtime rounding or
+identity regeneration was introduced.
