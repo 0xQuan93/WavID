@@ -1,0 +1,256 @@
+{
+  "source": {
+    "schema": "artistos-wavid-birth-source/0.1.0",
+    "rosterSnapshotSha256": "C4DFFE76B4A6039736AF8100D929290727EDCECE79C332789AE3ABE23D76B072",
+    "rosterCheckedAt": "2026-08-15T22:56:37.520Z",
+    "sources": [
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/artists?limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T22:56:37.520Z",
+        "apiUpdatedAt": "2026-08-15T22:56:38.929Z"
+      },
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/songs?sort=volume&limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T22:56:37.520Z",
+        "apiUpdatedAt": "2026-08-15T22:56:39.590Z"
+      }
+    ],
+    "artist": {
+      "artistKey": "wavewarz:audius:bettercallzaal",
+      "displayName": "BetterCallZaal",
+      "identity": {
+        "audiusHandle": "bettercallzaal",
+        "xHandle": null,
+        "wallet": null,
+        "claimStatus": "public-roster-observation; artist control not cryptographically proven"
+      },
+      "eligibility": {
+        "canBirth": true,
+        "reason": "stable Audius identity and reconciled Quick Battle record"
+      },
+      "quickBattle": {
+        "indexedSongs": 1,
+        "battles": 41,
+        "wins": 17,
+        "losses": 24,
+        "totalVolumeSol": 3.6506,
+        "summedSongLevelTraderSlots": 83,
+        "lastPlayed": "2026-04-21T01:44:16.527487+00:00",
+        "winRate": 41.5
+      },
+      "mainEvent": {
+        "status": "unobserved",
+        "record": null
+      },
+      "profile": {
+        "imageUrl": "https://cn1.mainnet.audiusindex.org/content/01KAKCS2Z2ZQ73M8FA2BY7AJMB/480x480.jpg"
+      },
+      "songs": [
+        {
+          "songTitle": "WaveWarZ, the electric vibez",
+          "artistName": "BetterCallZaal",
+          "musicLink": "https://audius.co/bettercallzaal/wavewarz-the-electric-vibez",
+          "genre": "Electronic",
+          "artUrl": "https://cn1.mainnet.audiusindex.org/content/01KAKCS2Z2ZQ73M8FA2BY7AJMB/480x480.jpg",
+          "battles": 41,
+          "wins": 17,
+          "losses": 24,
+          "winRate": 41,
+          "totalVolumeSol": 3.6506,
+          "totalUniqueTraders": 83,
+          "lastPlayed": "2026-04-21T01:44:16.527487+00:00",
+          "sourceValid": true
+        }
+      ]
+    }
+  },
+  "birthRecord": {
+    "id": "wavid-bettercallzaal-4386918eae82",
+    "root": "quantum-quil:wavid:artist:bettercallzaal:birth:4386918eae827356:attempt:1",
+    "source": {
+      "canonicalSha256": "4386918EAE8273563CD023732368101638BDD5A42A4A48E14A65FBEFE94ADCF3",
+      "rosterSnapshotSha256": "C4DFFE76B4A6039736AF8100D929290727EDCECE79C332789AE3ABE23D76B072",
+      "checkedAt": "2026-08-15T22:56:37.520Z",
+      "freshness": "fresh-at-birth"
+    },
+    "boundaries": {
+      "privateReviewOnly": true,
+      "artistControlProven": false,
+      "canon": false,
+      "publication": false,
+      "mint": false,
+      "utility": false,
+      "approvalInheritance": false
+    }
+  },
+  "expected": {
+    "provenance": "Evaluated original ArtistOS production module against its actual frozen birth source and birth record; public input projection removes only filesystem source path.",
+    "productionModuleSha256": "9B3DBDC13FAD29201FA8F02B5298A31DCB413C08AA2841751DE01FA69EE1DBCF",
+    "props": {
+      "accent": "#a9d9de",
+      "analogAmount": 0.965891,
+      "audio": "",
+      "background": "#010405",
+      "bpm": 120,
+      "edition": 1,
+      "form": "veil-orb",
+      "highlight": "#f2ffff",
+      "loopBeats": 16,
+      "organism": {
+        "attractorCount": 3,
+        "asymmetry": 0.518293,
+        "filamentDensity": 0.529049,
+        "membraneTension": 0.573114,
+        "memory": 0.544899,
+        "nervousness": 0.516526,
+        "recovery": 0.569268,
+        "respirationBeats": 8
+      },
+      "secondary": "#42575d",
+      "seed": "quantum-quil:wavid:artist:production:v1:wavewarz:audius:bettercallzaal",
+      "signal": {
+        "collapse": 0.512683,
+        "dropout": 0.553171,
+        "hold": 0.508049,
+        "interruption": 0.526994,
+        "retrace": 0.622449
+      },
+      "temperament": "fronded",
+      "title": "WavID // BetterCallZaal // Birth 0001",
+      "utility": "Private Artist WavID review birth; no publication, mint, payment, or utility enabled",
+      "anatomy": {
+        "version": "material-v1",
+        "body": {
+          "aspect": 0.972683,
+          "family": "fronded",
+          "harmonics": [
+            {
+              "order": 2,
+              "amplitude": 0.03344,
+              "phase": 3.086147
+            },
+            {
+              "order": 3,
+              "amplitude": 0.043704,
+              "phase": 1.306798
+            },
+            {
+              "order": 4,
+              "amplitude": 0.031994,
+              "phase": 5.069817
+            },
+            {
+              "order": 5,
+              "amplitude": 0.02817,
+              "phase": 2.918985
+            }
+          ],
+          "lobes": [
+            {
+              "amplitude": 0.12,
+              "angle": 0.30542,
+              "concentration": 4.813285
+            }
+          ],
+          "rotation": 0.076548,
+          "scale": 0.91664
+        },
+        "cavities": [
+          {
+            "bridgePorosity": 0.279024,
+            "center": {
+              "x": 0.119253,
+              "y": 0.013365
+            },
+            "irregularity": 0.103232,
+            "phase3": 4.819895,
+            "phase5": 4.468143,
+            "polarity": 1,
+            "radii": {
+              "x": 0.137647,
+              "y": 0.139728
+            },
+            "rotation": 0.141432,
+            "sourceStrength": 0.778909
+          }
+        ],
+        "bands": [
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.856323,
+            "width": 0.071967,
+            "bend": -0.138505
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 1
+            },
+            "strength": 0.856323,
+            "width": 0.071967,
+            "bend": -0.013153
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 2
+            },
+            "strength": 0.856323,
+            "width": 0.071967,
+            "bend": -0.012261
+          }
+        ],
+        "nodes": [
+          {
+            "center": {
+              "x": 0.166958,
+              "y": 0.492438
+            },
+            "polarity": 1,
+            "radius": 0.103579,
+            "strength": 0.693114
+          },
+          {
+            "center": {
+              "x": -0.432574,
+              "y": -0.180467
+            },
+            "polarity": -1,
+            "radius": 0.103579,
+            "strength": 0.693114
+          },
+          {
+            "center": {
+              "x": 0.227669,
+              "y": -0.373587
+            },
+            "polarity": -1,
+            "radius": 0.103579,
+            "strength": 0.693114
+          }
+        ],
+        "fingerprint": "2BD99F81EF26564BF0C38428C4BADDA35C6D2E3BF1C0EC46FBA4C84761A42F4B"
+      }
+    },
+    "canonicalPropsSha256": "37D01841789CE55AE5C4DD14F7C27F620CA78C79181B55192EAEA01747556E4C",
+    "materialSha256": "2BD99F81EF26564BF0C38428C4BADDA35C6D2E3BF1C0EC46FBA4C84761A42F4B",
+    "genomeSha256": "D446994C71B02C1DE158CC722A7AF71C476ABA630D72973D08EB49E50D9D30D5"
+  }
+}

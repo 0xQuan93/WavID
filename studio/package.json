@@ -1,0 +1,16 @@
+{
+  "name": "wavid-browser-studio",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "engines": { "node": ">=22.12.0" },
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": { "react": "19.2.5", "react-dom": "19.2.5" },
+  "devDependencies": { "vite": "8.2.2" }
+}

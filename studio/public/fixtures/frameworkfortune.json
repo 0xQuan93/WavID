@@ -1,0 +1,268 @@
+{
+  "source": {
+    "schema": "artistos-wavid-birth-source/0.1.0",
+    "rosterSnapshotSha256": "9F9B7C44467F5136694D76A29F69CC62B907128AC7FE3AE5ABEEB5C1A4FB14BC",
+    "rosterCheckedAt": "2026-08-15T02:54:44.485Z",
+    "sources": [
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/artists?limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T02:54:44.485Z",
+        "apiUpdatedAt": "2026-08-15T02:54:45.172Z"
+      },
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/songs?sort=volume&limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T02:54:44.485Z",
+        "apiUpdatedAt": "2026-08-15T02:54:45.914Z"
+      }
+    ],
+    "artist": {
+      "artistKey": "wavewarz:audius:frameworkfortune",
+      "displayName": "frameworkfortune",
+      "identity": {
+        "audiusHandle": "frameworkfortune",
+        "xHandle": null,
+        "wallet": null,
+        "claimStatus": "public-roster-observation; artist control not cryptographically proven"
+      },
+      "eligibility": {
+        "canBirth": true,
+        "reason": "stable Audius identity and reconciled Quick Battle record"
+      },
+      "quickBattle": {
+        "indexedSongs": 3,
+        "battles": 9,
+        "wins": 4,
+        "losses": 5,
+        "totalVolumeSol": 0.486,
+        "summedSongLevelTraderSlots": 0,
+        "lastPlayed": "2026-08-14T01:58:51.616061+00:00",
+        "winRate": 44.4
+      },
+      "mainEvent": {
+        "status": "unobserved",
+        "record": null
+      },
+      "profile": {
+        "imageUrl": "https://audius-content-5.figment.io/content/01K4ARMVF47P67M0A0FAGJBRRQ/480x480.jpg"
+      },
+      "songs": [
+        {
+          "songTitle": "INTRO:TOLD YA SOUL",
+          "artistName": "frameworkfortune",
+          "musicLink": "https://audius.co/frameworkfortune/introtold-ya-soul",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-content-5.figment.io/content/01K4ARMVF47P67M0A0FAGJBRRQ/480x480.jpg",
+          "battles": 3,
+          "wins": 3,
+          "losses": 0,
+          "winRate": 100,
+          "totalVolumeSol": 0.272,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-14T01:58:51.616061+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "CUTTING OLD TIES",
+          "artistName": "frameworkfortune",
+          "musicLink": "https://audius.co/frameworkfortune/cutting-old-ties",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-content-11.figment.io/content/01K4ARNQ6AGXG74JVMGM21886J/480x480.jpg",
+          "battles": 5,
+          "wins": 1,
+          "losses": 4,
+          "winRate": 20,
+          "totalVolumeSol": 0.1359,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-08T02:48:57.577617+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "SATIVA IN THE WOUNDS",
+          "artistName": "frameworkfortune",
+          "musicLink": "https://audius.co/frameworkfortune/sativa-in-the-wounds",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-04.staked.cloud/content/01K4ARMVEYR7JZ1NFW26NYA599/480x480.jpg",
+          "battles": 1,
+          "wins": 0,
+          "losses": 1,
+          "winRate": 0,
+          "totalVolumeSol": 0.0781,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-21T01:26:05.070085+00:00",
+          "sourceValid": true
+        }
+      ]
+    }
+  },
+  "birthRecord": {
+    "id": "wavid-frameworkfortune-434217733343",
+    "root": "quantum-quil:wavid:artist:frameworkfortune:birth:4342177333438c95:attempt:1",
+    "source": {
+      "canonicalSha256": "4342177333438C95AD720124F574839AF685AA6C57057220CE30E739E8E55672",
+      "rosterSnapshotSha256": "9F9B7C44467F5136694D76A29F69CC62B907128AC7FE3AE5ABEEB5C1A4FB14BC",
+      "checkedAt": "2026-08-15T02:54:44.485Z",
+      "freshness": "fresh-at-birth"
+    },
+    "boundaries": {
+      "privateReviewOnly": true,
+      "artistControlProven": false,
+      "canon": false,
+      "publication": false,
+      "mint": false,
+      "utility": false,
+      "approvalInheritance": false
+    }
+  },
+  "expected": {
+    "provenance": "Evaluated original ArtistOS production module against its actual frozen birth source and birth record; public input projection removes only filesystem source path.",
+    "productionModuleSha256": "9B3DBDC13FAD29201FA8F02B5298A31DCB413C08AA2841751DE01FA69EE1DBCF",
+    "props": {
+      "accent": "#f2a74b",
+      "analogAmount": 0.937751,
+      "audio": "",
+      "background": "#060200",
+      "bpm": 120,
+      "edition": 1,
+      "form": "veil-orb",
+      "highlight": "#fff0bd",
+      "loopBeats": 16,
+      "organism": {
+        "attractorCount": 1,
+        "asymmetry": 0.494445,
+        "filamentDensity": 0.580113,
+        "membraneTension": 0.34987,
+        "memory": 0.588669,
+        "nervousness": 0.311904,
+        "recovery": 0.58,
+        "respirationBeats": 8
+      },
+      "secondary": "#842f22",
+      "seed": "quantum-quil:wavid:artist:production:v1:wavewarz:audius:frameworkfortune",
+      "signal": {
+        "collapse": 0.497778,
+        "dropout": 0.58,
+        "hold": 0.524444,
+        "interruption": 0.294447,
+        "retrace": 0.644335
+      },
+      "temperament": "fronded",
+      "title": "WavID // frameworkfortune // Birth 0001",
+      "utility": "Private Artist WavID review birth; no publication, mint, payment, or utility enabled",
+      "anatomy": {
+        "version": "material-v1",
+        "body": {
+          "aspect": 0.982222,
+          "family": "fronded",
+          "harmonics": [
+            {
+              "order": 2,
+              "amplitude": 0.030573,
+              "phase": 3.799505
+            },
+            {
+              "order": 3,
+              "amplitude": 0.0409,
+              "phase": 2.375482
+            },
+            {
+              "order": 4,
+              "amplitude": 0.02761,
+              "phase": 0.269289
+            },
+            {
+              "order": 5,
+              "amplitude": 0.023174,
+              "phase": 3.736934
+            }
+          ],
+          "lobes": [
+            {
+              "amplitude": 0.12,
+              "angle": 0.044689,
+              "concentration": 7.357062
+            }
+          ],
+          "rotation": 0.743969,
+          "scale": 0.928312
+        },
+        "cavities": [
+          {
+            "bridgePorosity": 0.293333,
+            "center": {
+              "x": 0.119877,
+              "y": 0.005441
+            },
+            "irregularity": 0.150491,
+            "phase3": 4.171713,
+            "phase5": 1.396384,
+            "polarity": 1,
+            "radii": {
+              "x": 0.106011,
+              "y": 0.128673
+            },
+            "rotation": 1.782594,
+            "sourceStrength": 0.497507
+          }
+        ],
+        "bands": [
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.462197,
+            "width": 0.048216,
+            "bend": -0.169543
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.379594,
+            "width": 0.055182,
+            "bend": -0.16108
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.339516,
+            "width": 0.038364,
+            "bend": 0.028494
+          }
+        ],
+        "nodes": [
+          {
+            "center": {
+              "x": -0.457656,
+              "y": -0.18673
+            },
+            "polarity": -1,
+            "radius": 0.071023,
+            "strength": 0.469869
+          }
+        ],
+        "fingerprint": "1BCE7D5F35A42BB1F108511FEED034BAEBA9BA6039C9283D947806FC3BE81C65"
+      }
+    },
+    "canonicalPropsSha256": "E3D9C589294CB1369D8CEA1A81DEB8F350552FFED6C1D3B26BB56FCD25D003EA",
+    "materialSha256": "1BCE7D5F35A42BB1F108511FEED034BAEBA9BA6039C9283D947806FC3BE81C65",
+    "genomeSha256": "C90486A3C82A3FEED8723DB237916A5CBB5553331E524BB566022CCA88B4C120"
+  }
+}

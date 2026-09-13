@@ -1,0 +1,521 @@
+{
+  "source": {
+    "schema": "artistos-wavid-birth-source/0.1.0",
+    "rosterSnapshotSha256": "2B18C91E00C05681E1D641B68A464FCBDE8CACAD57F83D1E13DE671C63A47593",
+    "rosterCheckedAt": "2026-08-15T22:44:37.199Z",
+    "sources": [
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/artists?limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T22:44:37.199Z",
+        "apiUpdatedAt": "2026-08-15T22:44:38.586Z"
+      },
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/songs?sort=volume&limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T22:44:37.199Z",
+        "apiUpdatedAt": "2026-08-15T22:44:39.330Z"
+      }
+    ],
+    "artist": {
+      "artistKey": "wavewarz:audius:_0xquan",
+      "displayName": "OxQuan",
+      "identity": {
+        "audiusHandle": "_0xQuan",
+        "xHandle": null,
+        "wallet": null,
+        "claimStatus": "public-roster-observation; artist control not cryptographically proven"
+      },
+      "eligibility": {
+        "canBirth": true,
+        "reason": "stable Audius identity and reconciled Quick Battle record"
+      },
+      "quickBattle": {
+        "indexedSongs": 16,
+        "battles": 43,
+        "wins": 25,
+        "losses": 18,
+        "totalVolumeSol": 3.8533,
+        "summedSongLevelTraderSlots": 11,
+        "lastPlayed": "2026-08-15T03:27:09.142168+00:00",
+        "winRate": 58.1
+      },
+      "mainEvent": {
+        "status": "unobserved",
+        "record": null
+      },
+      "profile": {
+        "imageUrl": "https://val018.open-audio-validator.com/content/baeaaaiqseaoqbwje5ejf2m4s6ekzjokvx3sg35f2xfbuujgezfmydeon54jgk/480x480.jpg"
+      },
+      "songs": [
+        {
+          "songTitle": "igothop$",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/igothop",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://val018.open-audio-validator.com/content/baeaaaiqseaoqbwje5ejf2m4s6ekzjokvx3sg35f2xfbuujgezfmydeon54jgk/480x480.jpg",
+          "battles": 2,
+          "wins": 2,
+          "losses": 0,
+          "winRate": 100,
+          "totalVolumeSol": 0.5138,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-21T01:38:58.029321+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Money 4 Real",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/money-4-real",
+          "genre": "Trap",
+          "artUrl": "https://audius-02.staked.cloud/content/baeaaaiqsebrzwce7hp2lb5l6patrxxjxin5h25zygj76mthd5shnzrc7mgjb2/480x480.jpg",
+          "battles": 2,
+          "wins": 1,
+          "losses": 1,
+          "winRate": 50,
+          "totalVolumeSol": 0.4262,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-08T02:05:26.092284+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Faceless",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/faceless",
+          "genre": "Trap",
+          "artUrl": "https://audius-creator-8.theblueprint.xyz/content/baeaaaiqsedsawpzkmgmqy2lddjoa3s3poihsfqy7tv4hnpvgiaqw3lw4t6kxw/480x480.jpg",
+          "battles": 3,
+          "wins": 2,
+          "losses": 1,
+          "winRate": 67,
+          "totalVolumeSol": 0.3593,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-17T01:22:38.815751+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "BOUT THAiT!",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/bout-thait",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://v.monophonic.digital/content/baeaaaiqsebys6msrqbfofp2mdmnwa7pzxjmjdstmqaawpdlruz5byedtg46s4/480x480.jpg",
+          "battles": 1,
+          "wins": 0,
+          "losses": 1,
+          "winRate": 0,
+          "totalVolumeSol": 0.3109,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-21T01:38:58.029321+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Ride the Wave Warz",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/ride-the-wave-warz",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-content-2.figment.io/content/baeaaaiqsecpyyslc3vjojto4kdbf2bbpxbh2l57mry64bbehip2i723nkd7zo/480x480.jpg",
+          "battles": 5,
+          "wins": 5,
+          "losses": 0,
+          "winRate": 100,
+          "totalVolumeSol": 0.3105,
+          "totalUniqueTraders": 7,
+          "lastPlayed": "2026-07-18T12:22:56.678263+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "The Miss",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/the-miss",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius.zeogrid.com/content/baeaaaiqsebgdvtiasymgwrq5n2pizzhxtzr2eydntncmanxywl4yxfz5sbiyq/480x480.jpg",
+          "battles": 2,
+          "wins": 0,
+          "losses": 2,
+          "winRate": 0,
+          "totalVolumeSol": 0.2869,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-02T02:47:08.421689+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "100z",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/100z",
+          "genre": "World",
+          "artUrl": "https://val015.open-audio-validator.com/content/baeaaaiqsea5xzsqegqxzeg4az7k7kqukq5dpzn2cyvns6dsqg6sssp2bjj7jm/480x480.jpg",
+          "battles": 6,
+          "wins": 1,
+          "losses": 5,
+          "winRate": 17,
+          "totalVolumeSol": 0.256,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-15T03:27:09.142168+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "circles",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/circles",
+          "genre": "Rock",
+          "artUrl": "https://creatornode.audius.co/content/baeaaaiqsedmymyl7t52jl7gh3tjxh52xuzqmu6zajxwa75dvmorph6mgtfoik/480x480.jpg",
+          "battles": 4,
+          "wins": 3,
+          "losses": 1,
+          "winRate": 75,
+          "totalVolumeSol": 0.255,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-28T02:36:23.351383+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Don't Miss",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/dont-miss",
+          "genre": "Trap",
+          "artUrl": "https://val016.open-audio-validator.com/content/baeaaaiqseakdg4dyzfxvkrdpnizh3koimkuyv7oqa66wcyu6r4ejs45aedxxa/480x480.jpg",
+          "battles": 3,
+          "wins": 2,
+          "losses": 1,
+          "winRate": 67,
+          "totalVolumeSol": 0.2297,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-04T03:27:04.79061+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "ACCELERATE",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/accelerate",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://v.monophonic.digital/content/baeaaaiqseakeuu6noto6cpj6ygofncnqorwxfhjygljtbjo6a3okn3yuh3deg/480x480.jpg",
+          "battles": 5,
+          "wins": 3,
+          "losses": 2,
+          "winRate": 60,
+          "totalVolumeSol": 0.2236,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-06T02:49:27.876632+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "PAiD",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/paid",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-creator-4.theblueprint.xyz/content/baeaaaiqsedsjrl7cvwdqmsp42ihtyxmzadtivwbjwdpegd33fbdvs4yhpsgzo/480x480.jpg",
+          "battles": 1,
+          "wins": 1,
+          "losses": 0,
+          "winRate": 100,
+          "totalVolumeSol": 0.17,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-06-23T02:32:18.827334+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Bubblin",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/bubblin",
+          "genre": "Trap",
+          "artUrl": "https://audius-content-14.figment.io/content/baeaaaiqsebl2t6iy2ucfstfsk3zgdyjkiq6d4aiqbjqojd2eufc7szcq5lxh6/480x480.jpg",
+          "battles": 2,
+          "wins": 1,
+          "losses": 1,
+          "winRate": 50,
+          "totalVolumeSol": 0.135,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-08T02:01:36.998834+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GM (Galactic Memories)",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/gm-galactic-memories",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-discovery-1.altego.net/content/baeaaaiqsecofsbmc4kzfzav6fike54kwbsgum7dfgfhhubzrxvm7j4u7thvta/480x480.jpg",
+          "battles": 2,
+          "wins": 1,
+          "losses": 1,
+          "winRate": 50,
+          "totalVolumeSol": 0.1185,
+          "totalUniqueTraders": 4,
+          "lastPlayed": "2026-06-19T02:50:18.571483+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "The Owl (Mellow Out)",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/the-owl-mellow-out",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://v.monophonic.digital/content/baeaaaiqseddvseopmswhrl44s4eoqkojyhiyqgymludd6nzatryaxt7f2tqk4/480x480.jpg",
+          "battles": 1,
+          "wins": 1,
+          "losses": 0,
+          "winRate": 100,
+          "totalVolumeSol": 0.105,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-06-23T01:12:38.155652+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "P.A.ID (ORIGINAL)",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/paid-original",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://val002.open-audio-validator.com/content/baeaaaiqsecbwlqr4pv5b4viim4iqseifyscge2zlabtv6sgmyxiuf5mw2fsrw/480x480.jpg",
+          "battles": 1,
+          "wins": 0,
+          "losses": 1,
+          "winRate": 0,
+          "totalVolumeSol": 0.0869,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-02T00:55:21.528048+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "NO FUD [EXPLICIT]",
+          "artistName": "OxQuan",
+          "musicLink": "https://audius.co/_0xQuan/no-fud-explicit",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius.zeogrid.com/content/baeaaaiqseafijao35ajrxp4zrymkrmz2jnmjcjyrxfupyo67ncb5ajd7obpim/480x480.jpg",
+          "battles": 3,
+          "wins": 2,
+          "losses": 1,
+          "winRate": 67,
+          "totalVolumeSol": 0.066,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-11T03:55:54.297746+00:00",
+          "sourceValid": true
+        }
+      ]
+    }
+  },
+  "birthRecord": {
+    "id": "wavid-0xquan-1b1b17f8efe0",
+    "root": "quantum-quil:wavid:artist:_0xquan:birth:1b1b17f8efe07922:attempt:1",
+    "source": {
+      "canonicalSha256": "1B1B17F8EFE079228D1F31259CBAA9CD91127D7A4FD534785C5A9998D5F30CF4",
+      "rosterSnapshotSha256": "2B18C91E00C05681E1D641B68A464FCBDE8CACAD57F83D1E13DE671C63A47593",
+      "checkedAt": "2026-08-15T22:44:37.199Z",
+      "freshness": "fresh-at-birth"
+    },
+    "boundaries": {
+      "privateReviewOnly": true,
+      "artistControlProven": false,
+      "canon": false,
+      "publication": false,
+      "mint": false,
+      "utility": false,
+      "approvalInheritance": false
+    }
+  },
+  "expected": {
+    "provenance": "Evaluated original ArtistOS production module against its actual frozen birth source and birth record; public input projection removes only filesystem source path.",
+    "productionModuleSha256": "9B3DBDC13FAD29201FA8F02B5298A31DCB413C08AA2841751DE01FA69EE1DBCF",
+    "props": {
+      "accent": "#a9d9de",
+      "analogAmount": 0.966848,
+      "audio": "",
+      "background": "#010405",
+      "bpm": 120,
+      "edition": 1,
+      "form": "pulse-orb",
+      "highlight": "#f2ffff",
+      "loopBeats": 16,
+      "organism": {
+        "attractorCount": 3,
+        "asymmetry": 0.515116,
+        "filamentDensity": 0.7625,
+        "membraneTension": 0.581358,
+        "memory": 0.745,
+        "nervousness": 0.527466,
+        "recovery": 0.629302,
+        "respirationBeats": 8
+      },
+      "secondary": "#42575d",
+      "seed": "quantum-quil:wavid:artist:production:v1:wavewarz:audius:_0xquan",
+      "signal": {
+        "collapse": 0.429303,
+        "dropout": 0.556744,
+        "hold": 0.599767,
+        "interruption": 0.535581,
+        "retrace": 0.7225
+      },
+      "temperament": "bilobed",
+      "title": "WavID // OxQuan // Birth 0001",
+      "utility": "Private Artist WavID review birth; no publication, mint, payment, or utility enabled",
+      "anatomy": {
+        "version": "material-v1",
+        "body": {
+          "aspect": 1.026047,
+          "family": "bilobed",
+          "harmonics": [
+            {
+              "order": 2,
+              "amplitude": 0.028384,
+              "phase": 4.26673
+            },
+            {
+              "order": 3,
+              "amplitude": 0.020128,
+              "phase": 5.55971
+            },
+            {
+              "order": 4,
+              "amplitude": 0.031305,
+              "phase": 4.094681
+            },
+            {
+              "order": 5,
+              "amplitude": 0.013453,
+              "phase": 0.280143
+            }
+          ],
+          "lobes": [
+            {
+              "amplitude": 0.12,
+              "angle": 0.121308,
+              "concentration": 5.938565
+            },
+            {
+              "amplitude": 0.090596,
+              "angle": 2.285183,
+              "concentration": 5.263898
+            },
+            {
+              "amplitude": 0.065298,
+              "angle": 4.447145,
+              "concentration": 5.063587
+            }
+          ],
+          "rotation": -2.658715,
+          "scale": 0.97
+        },
+        "cavities": [
+          {
+            "bridgePorosity": 0.28093,
+            "center": {
+              "x": 0.329242,
+              "y": 0.131109
+            },
+            "irregularity": 0.113344,
+            "phase3": 1.216109,
+            "phase5": 2.90516,
+            "polarity": 1,
+            "radii": {
+              "x": 0.148987,
+              "y": 0.113143
+            },
+            "rotation": 4.240211,
+            "sourceStrength": 0.78848
+          },
+          {
+            "bridgePorosity": 0.28093,
+            "center": {
+              "x": -0.274578,
+              "y": -0.069551
+            },
+            "irregularity": 0.048286,
+            "phase3": 1.926443,
+            "phase5": 4.757416,
+            "polarity": -1,
+            "radii": {
+              "x": 0.155689,
+              "y": 0.10224
+            },
+            "rotation": 1.947959,
+            "sourceStrength": 0.78848
+          }
+        ],
+        "bands": [
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.575495,
+            "width": 0.043716,
+            "bend": -0.120632
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 1
+            },
+            "to": {
+              "kind": "node",
+              "index": 1
+            },
+            "strength": 0.53876,
+            "width": 0.043716,
+            "bend": 0.186675
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 2
+            },
+            "strength": 0.507542,
+            "width": 0.048216,
+            "bend": -0.068356
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 1
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.483081,
+            "width": 0.038364,
+            "bend": 0.005329
+          }
+        ],
+        "nodes": [
+          {
+            "center": {
+              "x": 0.079147,
+              "y": 0.497726
+            },
+            "polarity": 1,
+            "radius": 0.104781,
+            "strength": 0.701358
+          },
+          {
+            "center": {
+              "x": -0.4646,
+              "y": -0.033033
+            },
+            "polarity": 1,
+            "radius": 0.104781,
+            "strength": 0.701358
+          },
+          {
+            "center": {
+              "x": 0.277606,
+              "y": -0.35031
+            },
+            "polarity": -1,
+            "radius": 0.104781,
+            "strength": 0.701358
+          }
+        ],
+        "fingerprint": "BEF215BE1DCFEE9DBE665B7A40EF4376F2E223AAA3AA32F437A0F52D516D1AAD"
+      }
+    },
+    "canonicalPropsSha256": "C43B97E3AB466AD5AB09EAB7AF01D2768A6C737D6120D356BAD550E14965D0B4",
+    "materialSha256": "BEF215BE1DCFEE9DBE665B7A40EF4376F2E223AAA3AA32F437A0F52D516D1AAD",
+    "genomeSha256": "73B6A0FF1DCFC05AB7AECED764E662AD380D69DF704C7F6E89604F26DC0C1E0D"
+  }
+}
