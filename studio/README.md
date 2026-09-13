@@ -117,8 +117,9 @@ emulation is not a physical-phone performance test.
 
 ## Source and adoption terms
 
-Read [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). This public source review
-handoff does not establish a project-wide permissive license. Preserve component
-terms and public-data attribution; confirm adoption terms with the maintainer
-before production integration. Referenced songs, artist names and artwork are
-not licensed by this repository.
+The studio source owned by OxQuan is available under the [MIT License](LICENSE).
+Preserve the license and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), including
+the separately attributed visual-noise sources and retained historical notices.
+This does not relicense third-party components or grant rights to referenced
+songs, artist names or artwork. Official platform integration still requires the
+account, coverage and storage work described in the handoff.

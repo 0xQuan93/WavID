@@ -8,6 +8,7 @@ export default defineConfig({
     name: 'retain-distribution-notices',
     generateBundle() {
       for (const [source, fileName] of [
+        ['LICENSE', 'LICENSE'],
         ['THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_NOTICES.md'],
         ['src/renderer/REMOTION-LICENSE.md', 'src/renderer/REMOTION-LICENSE.md'],
         ['src/renderer/RANDOM-SOURCES.md', 'src/renderer/RANDOM-SOURCES.md'],

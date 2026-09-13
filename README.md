@@ -28,7 +28,8 @@ complete provenance protocol. File integrity is distinct from artist ownership,
 trusted timestamps and platform signatures. Official accounts, authenticated
 saves and durable identity lineage remain host-integration work.
 
-The original thesis is preserved unchanged. No project-wide permissive license
-is granted by this handoff; confirm adoption terms with the maintainer and retain
-the [component notices](studio/THIRD_PARTY_NOTICES.md). Public records and links
-do not grant rights to the underlying music or artist artwork.
+The original thesis is preserved unchanged. OxQuan's studio source is available
+under the [MIT License](LICENSE); retain the
+[component notices](studio/THIRD_PARTY_NOTICES.md). This does not relicense
+third-party material. Public records and links do not grant rights to the
+underlying music or artist artwork.

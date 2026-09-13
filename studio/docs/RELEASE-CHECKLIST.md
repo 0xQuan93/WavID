@@ -16,8 +16,8 @@ when archiving or reporting it.
 - [x] The release visual-noise helper is separately sourced from public-domain
   Mulberry32 and the documented UTF-16 polynomial. Original RNG and complete
   geometry regressions pass unchanged; pinned sources are retained.
-- [x] Production build succeeds. The measured static candidate is about 373 KB
-  across 12 files, including the worker, four fixtures and source notices.
+- [x] Production build succeeds. The measured static candidate is about 374 KB
+  across 13 files, including the worker, four fixtures, MIT license and notices.
   No model, Remotion runtime, database or generation service is required.
 - [x] Real Chromium acceptance passes on the production build at a `/WavID/`
   subpath: search, artist switching, focus view, Arrow/Home/End tab navigation,
@@ -48,8 +48,10 @@ when archiving or reporting it.
 
 ## Publication verification
 
-- [ ] Confirm the exact source tree is committed and pushed to the public
-  `0xQuan93/WavID` review branch, preserving the existing thesis and main history.
+- [x] The implementation commit `ca408dc` is pushed to the public
+  [review branch](https://github.com/0xQuan93/WavID/tree/feat/browser-studio-0.2),
+  preserving the existing thesis and main history. Later handoff commits retain
+  the same versioned identity grammar.
 - [x] A separate source copy in the release repository installs dependencies from
   the lockfile, passes all five test files, and builds the same application assets.
 - [x] Inspect staged files and built artifacts for private paths, credentials,
@@ -61,8 +63,8 @@ changes and WaveWarz integration are deliberately not performed by this branch.
 
 ## Pending for official adoption
 
-- [ ] Quan's project-wide source license choice. The review branch grants no
-  new blanket license; component notices and public-data attribution are retained.
+- [x] Quan selected MIT for the source he owns. Root and studio licenses are
+  included; component notices and public-data attribution remain separate.
 - [ ] Complete roster/history coverage, stable artist IDs and explicit coverage
   metadata supplied by WaveWarz. Missing songs may be a leaderboard artifact.
 - [ ] Replace heuristic public-name associations with the host's verified
