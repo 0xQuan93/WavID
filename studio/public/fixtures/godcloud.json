@@ -1,0 +1,531 @@
+{
+  "source": {
+    "schema": "artistos-wavid-birth-source/0.1.0",
+    "rosterSnapshotSha256": "9F9B7C44467F5136694D76A29F69CC62B907128AC7FE3AE5ABEEB5C1A4FB14BC",
+    "rosterCheckedAt": "2026-08-15T02:54:44.485Z",
+    "sources": [
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/artists?limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T02:54:44.485Z",
+        "apiUpdatedAt": "2026-08-15T02:54:45.172Z"
+      },
+      {
+        "uri": "https://wavewarz.info/api/public/leaderboards/songs?sort=volume&limit=500",
+        "freshness": "fresh",
+        "retrievedAt": "2026-08-15T02:54:44.485Z",
+        "apiUpdatedAt": "2026-08-15T02:54:45.914Z"
+      }
+    ],
+    "artist": {
+      "artistKey": "wavewarz:audius:godcloud",
+      "displayName": "GodclouD",
+      "identity": {
+        "audiusHandle": "GodclouD",
+        "xHandle": "therealgodcloud",
+        "wallet": "9xTn9ni1UPACiB1KQy6U8gd33nzM86BP3REje9gyBZmx",
+        "claimStatus": "public-roster-observation; artist control not cryptographically proven"
+      },
+      "eligibility": {
+        "canBirth": true,
+        "reason": "stable Audius identity and reconciled Quick Battle record"
+      },
+      "quickBattle": {
+        "indexedSongs": 16,
+        "battles": 89,
+        "wins": 57,
+        "losses": 32,
+        "totalVolumeSol": 20.5227,
+        "summedSongLevelTraderSlots": 95,
+        "lastPlayed": "2026-08-15T02:36:01.271695+00:00",
+        "winRate": 64
+      },
+      "mainEvent": {
+        "status": "matched-by-public-name",
+        "wallet": "9xTn9ni1UPACiB1KQy6U8gd33nzM86BP3REje9gyBZmx",
+        "name": "GODCLOUD",
+        "wins": 1,
+        "losses": 1,
+        "draws": 0,
+        "battles": 2,
+        "winRate": 50,
+        "totalVolumeSol": 3.4016,
+        "totalEarningsSol": 0.0611,
+        "pfpUrl": null,
+        "xHandle": "therealgodcloud"
+      },
+      "profile": {
+        "imageUrl": "https://audius.rickyrombo.com/content/01KS3ZCK7PF80J5PAD982EZSR0/480x480.jpg"
+      },
+      "songs": [
+        {
+          "songTitle": "Fuck yo feelingZ",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/fuck-yo-feelingz",
+          "genre": "Electronic",
+          "artUrl": "https://audius.rickyrombo.com/content/01KS3ZCK7PF80J5PAD982EZSR0/480x480.jpg",
+          "battles": 27,
+          "wins": 21,
+          "losses": 6,
+          "winRate": 78,
+          "totalVolumeSol": 10.0863,
+          "totalUniqueTraders": 30,
+          "lastPlayed": "2026-08-11T02:33:28.355556+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Sun",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/sun",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-content-12.figment.io/content/01KDVFCCP95R29ZG7YT0RVPMFC/480x480.jpg",
+          "battles": 12,
+          "wins": 5,
+          "losses": 7,
+          "winRate": 42,
+          "totalVolumeSol": 3.3831,
+          "totalUniqueTraders": 30,
+          "lastPlayed": "2026-07-25T03:16:41.909035+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "KILLING FLOOR",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/killing-floor",
+          "genre": "Alternative",
+          "artUrl": "https://audius-creator-3.theblueprint.xyz/content/01KVBCDDVSX642ZS4DEGK5PFGR/480x480.jpg",
+          "battles": 6,
+          "wins": 4,
+          "losses": 2,
+          "winRate": 67,
+          "totalVolumeSol": 2.0725,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-16T02:40:40.150054+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD ft Oly \"Luchador\"",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-ft-oly-luchador",
+          "genre": "Latin",
+          "artUrl": "https://val020.open-audio-validator.com/content/baeaaaiqseaerxm2edvlrkygko5qidrlhmr3x6fiej5kn3soryunxjjvacfszu/480x480.jpg",
+          "battles": 4,
+          "wins": 3,
+          "losses": 1,
+          "winRate": 75,
+          "totalVolumeSol": 1.2738,
+          "totalUniqueTraders": 2,
+          "lastPlayed": "2026-07-31T01:28:57.72213+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "EAZE OF MIND",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/eaze-of-mind",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://v.monophonic.digital/content/01KTN2ESNJTYGZQ1ECPA61N5GB/480x480.jpg",
+          "battles": 4,
+          "wins": 3,
+          "losses": 1,
+          "winRate": 75,
+          "totalVolumeSol": 0.585,
+          "totalUniqueTraders": 2,
+          "lastPlayed": "2026-07-04T01:50:26.240415+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD - “GOING ROGUE”",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-“going-rogue”",
+          "genre": "Experimental",
+          "artUrl": "https://validator.stuffisup.com/content/01KW0QS0S554RTRQP0Y5EMW0PA/480x480.jpg",
+          "battles": 2,
+          "wins": 1,
+          "losses": 1,
+          "winRate": 50,
+          "totalVolumeSol": 0.575,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-07-30T02:25:19.559175+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "CHEMICALS FINAL",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/chemicals-final",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-creator-7.theblueprint.xyz/content/01KXHSATDXC8KBXCAGHTJWQ1GX/480x480.jpg",
+          "battles": 4,
+          "wins": 3,
+          "losses": 1,
+          "winRate": 75,
+          "totalVolumeSol": 0.535,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-13T02:21:22.294141+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD Ft Rocky 2 Grimey - Cosplay Cannon",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-ft-rocky-2-grimey-cosplay-cannon-1",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-figment-1-validator-19.figment.io/content/01KMHD9BBDZ5TTDYTS3AWNXYQ3/480x480.jpg",
+          "battles": 5,
+          "wins": 4,
+          "losses": 1,
+          "winRate": 80,
+          "totalVolumeSol": 0.3622,
+          "totalUniqueTraders": 4,
+          "lastPlayed": "2026-08-12T02:57:49.796498+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "5 MINUTES OF PAIN Cannon Jones Diss",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/5-minutes-of-pain-cannon-jones-diss",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius.rickyrombo.com/content/01KMEAG0Q9GYNDVNK34P8A23F6/480x480.jpg",
+          "battles": 3,
+          "wins": 2,
+          "losses": 1,
+          "winRate": 67,
+          "totalVolumeSol": 0.3433,
+          "totalUniqueTraders": 2,
+          "lastPlayed": "2026-06-23T01:30:04.572529+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD - “WANTON”",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-“wanton”",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://creatornode.audius.co/content/01KW0RKTMB08Y9QFH3SJ98B9YB/480x480.jpg",
+          "battles": 2,
+          "wins": 1,
+          "losses": 1,
+          "winRate": 50,
+          "totalVolumeSol": 0.3205,
+          "totalUniqueTraders": 0,
+          "lastPlayed": "2026-08-15T02:36:01.271695+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD - \"RIDE OR DIES\"",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-ride-or-dies",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://val015.open-audio-validator.com/content/baeaaaiqseczqho2q4n5hxfebsu232okqmqp77akpyfcz7bfhlhupvgvlmxxvk/480x480.jpg",
+          "battles": 5,
+          "wins": 3,
+          "losses": 2,
+          "winRate": 60,
+          "totalVolumeSol": 0.3011,
+          "totalUniqueTraders": 5,
+          "lastPlayed": "2026-08-14T03:49:28.912749+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD - \"Falling\"",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-falling",
+          "genre": "Rock",
+          "artUrl": "https://v.monophonic.digital/content/baeaaaiqsedpb4qv6g7lo5ltp4amjzepmi3rw4qf54nrydbwzhhbwbnsnv3zyw/480x480.jpg",
+          "battles": 3,
+          "wins": 1,
+          "losses": 2,
+          "winRate": 33,
+          "totalVolumeSol": 0.2769,
+          "totalUniqueTraders": 4,
+          "lastPlayed": "2026-08-12T03:47:10.555568+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD - \"Cannon Jones Sux Buckets\"",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-cannon-jones-sux-buckets",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://val012.open-audio-validator.com/content/baeaaaiqsealjij257vtd7z2rk3bko5dzgyladlwjqxzojtwwsl3xcsd3g73r4/480x480.jpg",
+          "battles": 2,
+          "wins": 1,
+          "losses": 1,
+          "winRate": 50,
+          "totalVolumeSol": 0.173,
+          "totalUniqueTraders": 2,
+          "lastPlayed": "2026-06-18T02:13:04.61919+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "GodclouD - \"Left Alone\"",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/godcloud-left-alone",
+          "genre": "Rock",
+          "artUrl": "https://val015.open-audio-validator.com/content/baeaaaiqseczqho2q4n5hxfebsu232okqmqp77akpyfcz7bfhlhupvgvlmxxvk/480x480.jpg",
+          "battles": 4,
+          "wins": 1,
+          "losses": 3,
+          "winRate": 25,
+          "totalVolumeSol": 0.097,
+          "totalUniqueTraders": 6,
+          "lastPlayed": "2026-06-25T01:19:32.202692+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "CHECK DISS",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/check-diss",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://audius-02.staked.cloud/content/01KH7WM2CK3BY7QTK9V08EZC1G/480x480.jpg",
+          "battles": 3,
+          "wins": 1,
+          "losses": 2,
+          "winRate": 33,
+          "totalVolumeSol": 0.083,
+          "totalUniqueTraders": 3,
+          "lastPlayed": "2026-06-18T01:48:48.874632+00:00",
+          "sourceValid": true
+        },
+        {
+          "songTitle": "Perfect Cell",
+          "artistName": "GodclouD",
+          "musicLink": "https://audius.co/GodclouD/perfect-cell",
+          "genre": "Hip-Hop/Rap",
+          "artUrl": "https://creatornode.audius.co/content/01KH57MT83YBQBMNK8WPRNQ8AZ/480x480.jpg",
+          "battles": 3,
+          "wins": 3,
+          "losses": 0,
+          "winRate": 100,
+          "totalVolumeSol": 0.055,
+          "totalUniqueTraders": 5,
+          "lastPlayed": "2026-05-12T01:19:10.077614+00:00",
+          "sourceValid": true
+        }
+      ]
+    }
+  },
+  "birthRecord": {
+    "id": "wavid-godcloud-ae4acce02d8c",
+    "root": "quantum-quil:wavid:artist:godcloud:birth:ae4acce02d8cddb0:attempt:1",
+    "source": {
+      "canonicalSha256": "AE4ACCE02D8CDDB0292F05735230AB4934517DED9A8411A5B3CB66CCC9A47C36",
+      "rosterSnapshotSha256": "9F9B7C44467F5136694D76A29F69CC62B907128AC7FE3AE5ABEEB5C1A4FB14BC",
+      "checkedAt": "2026-08-15T02:54:44.485Z",
+      "freshness": "fresh-at-birth"
+    },
+    "boundaries": {
+      "privateReviewOnly": true,
+      "artistControlProven": false,
+      "canon": false,
+      "publication": false,
+      "mint": false,
+      "utility": false,
+      "approvalInheritance": false
+    }
+  },
+  "expected": {
+    "provenance": "Evaluated original ArtistOS production module against its actual frozen birth source and birth record; public input projection removes only filesystem source path.",
+    "productionModuleSha256": "9B3DBDC13FAD29201FA8F02B5298A31DCB413C08AA2841751DE01FA69EE1DBCF",
+    "props": {
+      "accent": "#d6cfad",
+      "analogAmount": 0.979959,
+      "audio": "",
+      "background": "#040402",
+      "bpm": 120,
+      "edition": 1,
+      "form": "veil-orb",
+      "highlight": "#fffbe5",
+      "loopBeats": 16,
+      "organism": {
+        "attractorCount": 3,
+        "asymmetry": 0.562359,
+        "filamentDensity": 0.7625,
+        "membraneTension": 0.683279,
+        "memory": 0.745,
+        "nervousness": 0.565249,
+        "recovery": 0.650562,
+        "respirationBeats": 8
+      },
+      "secondary": "#5a5441",
+      "seed": "quantum-quil:wavid:artist:production:v1:wavewarz:audius:godcloud",
+      "signal": {
+        "collapse": 0.399775,
+        "dropout": 0.503596,
+        "hold": 0.632247,
+        "interruption": 0.641749,
+        "retrace": 0.7225
+      },
+      "temperament": "fronded",
+      "title": "WavID // GodclouD // Birth 0001",
+      "utility": "Private Artist WavID review birth; no publication, mint, payment, or utility enabled",
+      "anatomy": {
+        "version": "material-v1",
+        "body": {
+          "aspect": 1.044944,
+          "family": "fronded",
+          "harmonics": [
+            {
+              "order": 2,
+              "amplitude": 0.019389,
+              "phase": 0.450258
+            },
+            {
+              "order": 3,
+              "amplitude": 0.022616,
+              "phase": 3.959982
+            },
+            {
+              "order": 4,
+              "amplitude": 0.033429,
+              "phase": 5.707635
+            },
+            {
+              "order": 5,
+              "amplitude": 0.023754,
+              "phase": 5.094862
+            }
+          ],
+          "lobes": [
+            {
+              "amplitude": 0.12,
+              "angle": 0.218737,
+              "concentration": 5.378158
+            },
+            {
+              "amplitude": 0.075777,
+              "angle": 2.429803,
+              "concentration": 6.786012
+            },
+            {
+              "amplitude": 0.065298,
+              "angle": 4.324458,
+              "concentration": 5.090126
+            }
+          ],
+          "rotation": -2.194472,
+          "scale": 0.97
+        },
+        "cavities": [
+          {
+            "bridgePorosity": 0.252584,
+            "center": {
+              "x": 0.314372,
+              "y": 0.001883
+            },
+            "irregularity": 0.138575,
+            "phase3": 0.634259,
+            "phase5": 4.976118,
+            "polarity": 1,
+            "radii": {
+              "x": 0.134466,
+              "y": 0.087512
+            },
+            "rotation": 4.267084,
+            "sourceStrength": 0.919593
+          },
+          {
+            "bridgePorosity": 0.252584,
+            "center": {
+              "x": -0.310115,
+              "y": -0.001428
+            },
+            "irregularity": 0.096752,
+            "phase3": 0.261014,
+            "phase5": 5.223731,
+            "polarity": -1,
+            "radii": {
+              "x": 0.15923,
+              "y": 0.126233
+            },
+            "rotation": 5.514775,
+            "sourceStrength": 0.919593
+          }
+        ],
+        "bands": [
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.86,
+            "width": 0.071628,
+            "bend": 0.001795
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 1
+            },
+            "to": {
+              "kind": "node",
+              "index": 1
+            },
+            "strength": 0.854672,
+            "width": 0.067,
+            "bend": -0.146883
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 0
+            },
+            "to": {
+              "kind": "node",
+              "index": 2
+            },
+            "strength": 0.827216,
+            "width": 0.057858,
+            "bend": -0.175168
+          },
+          {
+            "from": {
+              "kind": "cavity",
+              "index": 1
+            },
+            "to": {
+              "kind": "node",
+              "index": 0
+            },
+            "strength": 0.760797,
+            "width": 0.052,
+            "bend": -0.043089
+          }
+        ],
+        "nodes": [
+          {
+            "center": {
+              "x": 0.115704,
+              "y": 0.416202
+            },
+            "polarity": 1,
+            "radius": 0.119645,
+            "strength": 0.803278
+          },
+          {
+            "center": {
+              "x": -0.460153,
+              "y": -0.113376
+            },
+            "polarity": 1,
+            "radius": 0.119645,
+            "strength": 0.803278
+          },
+          {
+            "center": {
+              "x": 0.275716,
+              "y": -0.365524
+            },
+            "polarity": -1,
+            "radius": 0.119645,
+            "strength": 0.803278
+          }
+        ],
+        "fingerprint": "54AD3BAA07DBA9CB65A65450AFFDAEB461BEA7B0CD36C2CE3E8980533AA03886"
+      }
+    },
+    "canonicalPropsSha256": "93065F68498405F618192DECB0861B8D1AA345CB701D5C610CAE48EC30A0492F",
+    "materialSha256": "54AD3BAA07DBA9CB65A65450AFFDAEB461BEA7B0CD36C2CE3E8980533AA03886",
+    "genomeSha256": "85F54E54F7657B54E100AB0D78F5D59E024E01AF00E668554D4F1F9145C14D4A"
+  }
+}
