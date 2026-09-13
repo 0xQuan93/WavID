@@ -59,7 +59,11 @@ when archiving or reporting it.
   the lockfile, passes all five test files, and builds the same application assets.
 - [x] Inspect staged files and built artifacts for private paths, credentials,
   browser evidence, dependency caches and unrelated source before publication.
-- [ ] Record the result of the repository's Node 22/24 CI checks after push.
+- [x] Node 22 and Node 24 clean-checkout install/test/build jobs passed on
+  implementation revision `dedfa46`:
+  [GitHub CI evidence](https://github.com/0xQuan93/WavID/actions/runs/34747671946).
+  Both run all 36 regressions. Final evidence-only documentation commits do not
+  change the application assets or identity grammar.
 
 Repository publication does not deploy the site. Pages configuration, domain
 changes and WaveWarz integration are deliberately not performed by this branch.
