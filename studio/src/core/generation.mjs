@@ -11,7 +11,10 @@ export function validateArtist(artist) {
   if (typeof artist.displayName !== 'string' || !artist.displayName.trim() || artist.displayName.length > 200) throw new Error('Artist display name must be nonempty text up to 200 characters');
   if (artist?.eligibility?.canBirth !== true) throw new Error(artist?.eligibility?.reason || 'Artist is not eligible for generation');
   const handle = artist.identity?.audiusHandle;
-  if (typeof handle !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(handle) || artist.artistKey !== `wavewarz:audius:${handle.toLocaleLowerCase('en-US')}`) {
+  // Audius handles are letters, digits, underscores, and periods (Delo.Dark).
+  // "." and ".." are path tokens, not identities. Hyphens stay accepted so
+  // previously eligible checkpoints do not change.
+  if (typeof handle !== 'string' || !/^(?!\.$|\.\.$)[a-zA-Z0-9_.-]{1,100}$/.test(handle) || artist.artistKey !== `wavewarz:audius:${handle.toLocaleLowerCase('en-US')}`) {
     throw new Error('A stable, matching Audius identity is required');
   }
   if (!Array.isArray(artist.songs) || !artist.songs.length || artist.songs.length > 500) throw new Error('One to 500 reconciled songs are required');

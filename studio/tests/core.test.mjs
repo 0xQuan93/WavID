@@ -74,6 +74,29 @@ test('roster normalization preserves original public identity and aggregate rule
   assert.deepEqual(generateDefinition(artist, { checkedAt: source.rosterCheckedAt }).props, oxquan.expected.props);
 });
 
+test('audius handles that contain periods stay eligible and reproducible', () => {
+  const song = structuredClone(oxquan.source.artist.songs[0]);
+  song.musicLink = 'https://audius.co/Delo.Dark/dey-love-dark';
+  song.artistName = 'Dey Love Dark';
+  const checkedAt = '2026-09-13T00:00:00.000Z';
+  const roster = normalizeRoster({}, { songs: [song] }, checkedAt);
+  assert.equal(roster.counts.birthEligible, 1);
+  const [artist] = roster.artists;
+  assert.equal(artist.artistKey, 'wavewarz:audius:delo.dark');
+  assert.equal(artist.identity.audiusHandle, 'Delo.Dark');
+  const first = generateDefinition(artist, { checkedAt });
+  assert.equal(first.props.seed, 'quantum-quil:wavid:artist:production:v1:wavewarz:audius:delo.dark');
+  assert.deepEqual(generateDefinition(artist, { checkedAt }), first);
+  const checkpoint = { checkedAt, sources: [] };
+  assert.equal(parsePortableExport(JSON.parse(JSON.stringify(createPortableExport(artist, checkpoint)))).artist.artistKey, artist.artistKey);
+  for (const handle of ['.', '..', 'bad handle', 'a/b', 'has%20space']) {
+    const forged = structuredClone(artist);
+    forged.identity.audiusHandle = handle;
+    forged.artistKey = `wavewarz:audius:${handle.toLocaleLowerCase('en-US')}`;
+    assert.throws(() => validateArtist(forged), /Audius identity/);
+  }
+});
+
 test('unresolved identities and unreconciled songs never become eligible', () => {
   const song = oxquan.source.artist.songs[0];
   const unresolved = normalizeRoster({ artists: [{ name: 'Unknown' }] }, { songs: [{ ...song, musicLink: 'https://example.com/track' }] });
