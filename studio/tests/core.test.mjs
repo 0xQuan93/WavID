@@ -106,6 +106,26 @@ test('unresolved identities and unreconciled songs never become eligible', () =>
   assert.equal(invalid.artists[0].eligibility.canBirth, false);
 });
 
+test('unresolved wallet keys preserve case-sensitive Solana addresses', () => {
+  const checkedAt = '2026-09-13T00:00:00.000Z';
+  const upper = '9xMBJbs3xZ1CwpR75U7b4vpTD3ou3HbVzuHiLRE21Jgo';
+  const lower = upper.toLowerCase();
+  const roster = normalizeRoster({
+    artists: [
+      { name: 'Case A', wallet: upper, battles: 1, wins: 1, losses: 0 },
+      { name: 'Case B', wallet: lower, battles: 1, wins: 0, losses: 1 },
+      { name: 'Foo Bar' },
+    ],
+  }, { songs: [] }, checkedAt);
+  assert.equal(roster.counts.birthEligible, 0);
+  assert.deepEqual(roster.artists.map((artist) => artist.artistKey).sort(), [
+    `wavewarz:name:foo-bar`,
+    `wavewarz:wallet:${lower}`,
+    `wavewarz:wallet:${upper}`,
+  ].sort());
+  assert.equal(roster.artists.find((artist) => artist.displayName === 'Case A').identity.wallet, upper);
+});
+
 test('same checkpoint generates reproducible envelope without changing input', () => {
   const artist = structuredClone(oxquan.source.artist);
   const before = JSON.stringify(artist);
