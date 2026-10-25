@@ -3,6 +3,9 @@ import { generateDefinition, createPortableExport, parsePortableExport, describe
 import { WavIdRenderer, usePreparedWavIdFrame } from '../renderer';
 import { Icon } from './icons';
 import { rasterize, createZip, createArtifactReceipt, downloadFile as download, filenameFor as slug } from './files.mjs';
+import { previewFrameAt } from './playback.mjs';
+import { planSilentLoop } from './loop-plan.mjs';
+import { encodeSilentLoop } from './encode-loop.mjs';
 import { loadFrozenRoster, fetchPublicRoster } from './roster.mjs';
 
 
@@ -36,6 +39,8 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
   const [focus, setFocus] = useState(false);
   const [baseline, setBaseline] = useState(null);
   const [exportSize, setExportSize] = useState(1080);
+  const [loopFps, setLoopFps] = useState(15);
+  const [exportingLoop, setExportingLoop] = useState(false);
   const [readyOnly, setReadyOnly] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(0);
   const [now, setNow] = useState(Date.now());
@@ -47,6 +52,11 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
   const svgRef = useRef(null);
   const fileRef = useRef(null);
   const requestSequence = useRef(0);
+  const frameRef = useRef(88);
+  const exportAbort = useRef(null);
+  const liveRef = useRef({});
+  const mounted = useRef(true);
+  frameRef.current = frame;
   const artists = roster?.artists || [];
   const artist = artists.find((entry) => entry.artistKey === selectedKey);
   // Never pair a newly selected artist with the previous observation's form.
@@ -62,12 +72,13 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
   };
 
   const {prepared, busy:renderBusy, error:renderError} = usePreparedWavIdFrame(definition?.props, frame);
+  liveRef.current = {prepared, renderBusy, definition};
   const visibleFrame = prepared?.frame ?? 88;
   const evidence = useMemo(() => {if (!definition) return null;try {return describeProvenance(definition,sourceMode);} catch {return null;}}, [definition,sourceMode]);
   const comparison = useMemo(() => {if(!baseline || !definition || baseline.artist.artistKey !== artist?.artistKey) return null;try{return compareCheckpoints(baseline,createPortableExport(artist,checkpoint));}catch{return null;}},[baseline,definition,artist,roster]);
   const cooldown = Math.max(0,30-Math.floor((now-lastRefresh)/1000));
   useEffect(()=>{if(!lastRefresh||!cooldown)return;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[lastRefresh,cooldown]);
-  useEffect(()=>()=>fetchRef.current?.abort(),[]);
+  useEffect(() => () => { mounted.current = false; exportAbort.current?.abort(); fetchRef.current?.abort(); }, []);
   useEffect(()=>{const escape=e=>{if(e.key==='Escape')setFocus(false);};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[]);
   useEffect(() => {
     if (initialRoster) return;
@@ -93,14 +104,14 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
 
   useEffect(() => {
     if (!playing) return;
+    const startFrame = frameRef.current;
+    const start = performance.now();
     let timer = 0;
-    let previous = performance.now();
-    const tick = (now) => {
-      if (now - previous >= 1000 / 15) {
-        const elapsedFrames = Math.max(1, Math.round((now - previous) * 30 / 1000));
-        previous = now;
-        setFrame((current) => (current + elapsedFrames) % 240);
-      }
+    const tick = () => {
+      // The rAF timestamp can precede performance.now() captured in this effect.
+      // A negative elapsed time must not abort the clock.
+      const next = previewFrameAt({startFrame, elapsedMs: Math.max(0, performance.now() - start)});
+      setFrame((current) => current === next ? current : next);
       timer = requestAnimationFrame(tick);
     };
     timer = requestAnimationFrame(tick);
@@ -171,6 +182,64 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       } else {download(png,filename);setNotice(`${exportSize} × ${exportSize} still downloaded from the displayed frame.`);}
     } catch(err) {setError(err.message);} finally {setBusy('');}
   }
+  async function exportLoop() {
+    if (!definition || !svgRef.current || busy) return;
+    const sampleFps = loopFps;
+    const size = exportSize;
+    const sequence = requestSequence.current;
+    const restoreFrame = Number(svgRef.current.dataset.frame);
+    let plan;
+    try { plan = planSilentLoop({sampleFps}); }
+    catch (err) { setError(err.message); return; }
+    const controller = new AbortController();
+    exportAbort.current = controller;
+    setPlaying(false); setExportingLoop(true); setError(''); setNotice('');
+    setBusy(`Encoding silent loop · 0 / ${plan.frameCount} · ${sampleFps} fps · no audio`);
+    dialogRef.current?.close();
+    try {
+      const portable = createPortableExport(artist, checkpoint);
+      const blob = await encodeSilentLoop({
+        plan, size, signal: controller.signal,
+        onProgress({done, total, phase}) {
+          setBusy(phase === 'finish' ? `Finishing ${size} silent loop…` : `Encoding silent loop · ${done} / ${total} · ${sampleFps} fps · no audio`);
+        },
+        async renderFrame(frameNumber) {
+          setFrame(frameNumber);
+          const started = performance.now();
+          while (performance.now() - started < 30000) {
+            if (controller.signal.aborted) throw new Error('Loop export cancelled.');
+            if (document.hidden) throw new Error('Loop export needs this tab to stay visible.');
+            if (requestSequence.current !== sequence) throw new Error('Loop export stopped because the artist changed.');
+            const svg = svgRef.current;
+            const live = liveRef.current;
+            const fingerprint = live.definition?.props?.anatomy?.fingerprint;
+            if (svg && Number(svg.dataset.frame) === frameNumber && svg.dataset.fingerprint === fingerprint && live.prepared?.frame === frameNumber && !live.renderBusy) return svg;
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(`Frame ${frameNumber} did not finish preparing.`);
+        },
+        userData: {
+          schema: 'wavid-browser-loop/1.0', audio: 'none', timelineFps: plan.timelineFps, sampleFps: plan.sampleFps,
+          frameCount: plan.frameCount, step: plan.step, width: size, height: size, durationSeconds: plan.durationSeconds,
+          mapping: 'wavewarz-roster-to-material-v1/1.0.0', renderer: {id: 'wavid-browser-svg', version: '0.2.0'},
+          encoder: 'webcodecs-avc', productionMaster: false,
+          checkpoint: {sourceSha256: portable.sourceSha256, propsSha256: portable.definitionSha256, materialSha256: portable.definition.props.anatomy.fingerprint},
+          claims: {signatureVerified: false, artistControlProven: false, audioSynced: false},
+        },
+      });
+      download(blob, `${slug(nameOf(artist))}-wavid-loop-${size}-${sampleFps}fps.mp4`);
+      setNotice(`Silent ${sampleFps} fps loop downloaded (${plan.frameCount} material frames, 8.00s, no audio).`);
+    } catch (err) {
+      if (err.message === 'Loop export cancelled.') setNotice('Loop export cancelled.');
+      else setError(err.message || 'Loop export failed.');
+    } finally {
+      exportAbort.current = null;
+      if (mounted.current) {
+        setExportingLoop(false); setBusy('');
+        if (requestSequence.current === sequence && Number.isInteger(restoreFrame)) setFrame(restoreFrame);
+      }
+    }
+  }
   async function copyHash(value) {try{await navigator.clipboard.writeText(value);setNotice('Fingerprint copied.');}catch{setNotice(value);}}
   function rememberCheckpoint(){try{setBaseline(createPortableExport(artist,checkpoint));setNotice('Checkpoint held in this tab. Load fresh history or import another checkpoint for this artist to compare.');}catch(err){setError(err.message);}}
   function togglePlayback(){if(playing){setPlaying(false);setFrame(visibleFrame);}else{setFrame(visibleFrame);setPlaying(true);}}
@@ -200,7 +269,7 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
     </aside>
     <main className="workspace" id={`workspace-${instanceId}`} tabIndex={-1}>
       <div className="workspace-heading"><div><span className="eyebrow">02 / THE LIVING SIGNATURE</span><h2>{artist ? nameOf(artist) : 'Opening the studio'}<span className="heading-dot">.</span></h2></div><div className="checkpoint"><span className="eyebrow">{sourceMode === 'live' ? 'OBSERVED' : 'CHECKPOINT'}</span><span>{prettyDate(checkpoint.checkedAt)}</span></div></div>
-      <div className="feedback" aria-live="polite">{busy && <p className="busy">{busy}</p>}{(error||renderError) && <p className="error" role="alert">{error||renderError?.message||String(renderError)}</p>}{notice && <p className="notice">{notice}</p>}</div>
+      <div className="feedback" aria-live="polite">{busy && <p className="busy">{busy}{exportingLoop && <button type="button" className="cancel-export" onClick={() => exportAbort.current?.abort()}>Cancel</button>}</p>}{(error||renderError) && <p className="error" role="alert">{error||renderError?.message||String(renderError)}</p>}{notice && <p className="notice">{notice}</p>}</div>
       <div className="instrument-layout">
         <section className="preview-panel" aria-label="WavID preview">
           <div className="chamber-label"><span><i/> {playing ? 'IN MOTION' : 'STILL / FRAME ' + String(visibleFrame).padStart(3, '0')}</span><span>MATERIAL 01</span><button className="icon-button focus-button" onClick={()=>setFocus(!focus)} aria-label={focus?'Exit focus view':'Enter focus view'}><Icon name={focus?'close':'focus'} size={16}/></button></div>
@@ -209,8 +278,8 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
             {prepared ? <RenderBoundary key={selectedKey}><WavIdRenderer props={prepared.props} frame={prepared.frame} preparedFrame={prepared} ref={svgRef} style={{height:'100%'}} title={`${nameOf(artist)} — WavID material-v1`}/></RenderBoundary> : <div className="preview-placeholder"><Mark/><p>{error ? 'Preview unavailable' : 'Tracing the form…'}</p></div>}
           </div>
           <div className="chamber-foot"><span>QUANTUM QUIL <b>×</b> WAVEWARZ</span><span>{anatomy?.body?.family || '—'} / {definition?.props?.accent || '—'}</span></div>
-          <div className="transport"><button className="play-button" onClick={togglePlayback} disabled={!prepared} aria-label={playing ? 'Pause animation' : 'Play animation'}><Icon name={playing?'pause':'play'} size={16}/></button><input type="range" aria-label="Animation frame" min="0" max="239" value={frame} disabled={!definition} onChange={(event) => {setPlaying(false);setFrame(Number(event.target.value));}}/><span className="timecode">{(visibleFrame / 30).toFixed(2)} <span>/ 8.00s</span></span></div>
-          <div className="preview-status"><span>{renderBusy?'Preparing the next frame':'Computed in your browser'}</span><span>Silent loop · 120 BPM · 16 beats</span></div>
+          <div className="transport"><button className="play-button" onClick={togglePlayback} disabled={!prepared || !!busy} aria-label={playing ? 'Pause animation' : 'Play animation'}><Icon name={playing?'pause':'play'} size={16}/></button><input type="range" aria-label="Animation frame" min="0" max="239" value={playing ? visibleFrame : frame} disabled={!definition || !!busy} onChange={(event) => {setPlaying(false);setFrame(Number(event.target.value));}}/><span className="timecode">{(visibleFrame / 30).toFixed(2)} <span>/ 8.00s</span></span></div>
+          <div className="preview-status"><span>{renderBusy?'Preparing the next frame':'Computed in your browser'}</span><span>120 BPM visual clock · 16 beats · no audio</span></div>
         </section>
         <aside className="inspector">
           <div className="inspector-top"><span className="eyebrow">A FORM WITH A HISTORY</span><h3>Every trace<br/>has a source.</h3><p>The form is expressive.<br/>Its relationship to history is inspectable.</p></div>
@@ -250,6 +319,6 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       <p className="coverage-note">{sourceMode === 'imported' ? 'Imported checkpoint · supplied history has not been authenticated with WaveWarz.' : 'Leaderboard-derived checkpoint · source queries cover up to 500 artist rows and 500 songs ranked by volume. Counts describe those records, not a complete catalog or roster.'}</p>
       <footer><span>HISTORY LEAVES FORM.</span><span>WavID by OxQuan <b>·</b> Material-v1 / Studio 0.2</span></footer>
     </main>
-    <dialog ref={dialogRef} className="export-dialog" aria-labelledby={`export-title-${instanceId}`}><button className="icon-button dialog-close" aria-label="Close export dialog" onClick={()=>dialogRef.current.close()}><Icon name="close"/></button><span className="eyebrow">THE ARTWORK + ITS EVIDENCE</span><h2 id={`export-title-${instanceId}`}>Keep the history<br/><em>with the form.</em></h2><p>An identity kit keeps this exact still, the portable source definition, and an unsigned verification receipt together.</p><div className="kit-contents"><span><Icon name="layers"/>Artwork.png</span><span><Icon name="source"/>Identity.json</span><span><Icon name="check"/>Receipt.json</span></div><label className="size-label">Still resolution<select value={exportSize} onChange={e=>setExportSize(Number(e.target.value))}><option value={1080}>1080 × 1080 · Standard</option><option value={2160}>2160 × 2160 · High resolution</option></select></label><p>The receipt records the image’s SHA-256, source and definition fingerprints, renderer version and frame. It establishes file relationships, not ownership.</p><button className="primary-button" disabled={!prepared||!!busy} onClick={()=>exportPng(true)}>Download identity kit <Icon name="download" size={16}/></button></dialog>
+    <dialog ref={dialogRef} className="export-dialog" aria-labelledby={`export-title-${instanceId}`}><button className="icon-button dialog-close" aria-label="Close export dialog" onClick={()=>dialogRef.current.close()}><Icon name="close"/></button><span className="eyebrow">THE ARTWORK + ITS EVIDENCE</span><h2 id={`export-title-${instanceId}`}>Keep the history<br/><em>with the form.</em></h2><p>An identity kit keeps this exact still, the portable source definition, and an unsigned verification receipt together.</p><div className="kit-contents"><span><Icon name="layers"/>Artwork.png</span><span><Icon name="source"/>Identity.json</span><span><Icon name="check"/>Receipt.json</span></div><label className="size-label">Still resolution<select value={exportSize} onChange={e=>setExportSize(Number(e.target.value))}><option value={1080}>1080 × 1080 · Standard</option><option value={2160}>2160 × 2160 · High resolution</option></select></label><p>The receipt records the image’s SHA-256, source and definition fingerprints, renderer version and frame. It establishes file relationships, not ownership.</p><button className="primary-button" disabled={!prepared||!!busy} onClick={()=>exportPng(true)}>Download identity kit <Icon name="download" size={16}/></button><label className="size-label loop-rate">Silent loop rate<select className="loop-fps" value={loopFps} disabled={!!busy} onChange={(event) => setLoopFps(Number(event.target.value))}><option value={15}>15 fps · 120 frames · includes poster 88</option><option value={30}>30 fps · every material frame</option><option value={10}>10 fps · 80 frames · skips poster 88</option></select></label><p>Eight seconds, no audio. 120 BPM is the visual clock, not a soundtrack. Preview may skip frames; this file does not. It is a browser H.264 recording, not the unrendered production master. Keep this tab visible.</p><button className="outline-button loop-export" disabled={!prepared||!!busy} onClick={exportLoop}>Download silent loop <Icon name="download" size={16}/></button></dialog>
   </div>;
 }

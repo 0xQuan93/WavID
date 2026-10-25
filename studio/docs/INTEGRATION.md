@@ -242,7 +242,13 @@ background layers, and browser filter compositing varies. Do not describe a
 matching material hash as proof that two PNGs are byte-identical. Current
 downloads are browser stills at 1080 or 2160 square. The 2160 still scales
 viewport-pixel stroke width and dash length so non-scaling strokes keep the 1080
-reference weight. No production MP4 export worker is included.
+reference weight. The same rasterizer can save one silent 8 second H.264 loop
+at 10, 15, or 30 fps. 30 fps visits every material frame; 15 and 10 fps keep
+the 8 seconds by sampling every second or third frame. There is no audio track.
+BPM is the visual clock only. The file carries a `wavid-browser-loop/1.0`
+provenance box and `productionMaster: false`. The production manifest still
+describes an unrendered master (H.264, CRF 14, slow preset, BT.709, 2160,
+audio none). Browser pixels and encoder bytes are not that master.
 
 ## Deployment boundary
 

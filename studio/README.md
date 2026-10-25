@@ -41,8 +41,11 @@ about 43 MB on the initial Linux installation.
 - Search or filter the collection; explicitly load the current WaveWarz public
   leaderboards when wanted. A failed refresh leaves the current collection intact.
 - The material-v1 form opens paused at frame 88. Play, scrub its eight-second
-  timeline, or use focus view. Geometry runs in a bounded browser worker so
-  controls remain responsive. Playback stops when the page hides.
+  timeline, or use focus view. Play follows a 30 fps clock anchored to that
+  loop. The picture can skip frames when geometry is slower than the clock;
+  pause stays on the frame that is actually on screen. Geometry runs in a
+  bounded browser worker so controls remain responsive. Playback stops when
+  the page hides.
 - **Form** explains anatomy and song bands. **History** inspects recorded songs
   and compares held/imported checkpoints for the same artist. **Proof** exposes
   the source → rules → form relationship and copyable fingerprints.
@@ -53,6 +56,12 @@ about 43 MB on the initial Linux installation.
   and unsigned receipt in one ZIP. The receipt hashes the exact PNG bytes and
   records its source, definition, material, renderer version and displayed frame.
   2160 stills keep the 1080 reference stroke weight and dash pitch.
+- **Download silent loop**, in that same dialog, saves an 8 second H.264 file
+  at 1080 or 2160 and 10, 15, or 30 fps. 30 fps visits every material frame.
+  15 fps keeps poster frame 88. 10 fps does not. There is no audio track.
+  Preview skipping does not apply: the file waits for each sampled frame.
+  Keep the tab visible while it encodes. This is a browser recording, not the
+  unrendered production master.
 
 Collections and comparison baselines live only in the current browser tab.
 Downloads are the persistence mechanism; keep the original JSON to reproduce
@@ -115,6 +124,11 @@ It exercises real artwork, navigation, exports, import integrity, failure
 preservation and narrow-screen layout. The independent worker/browser probe is
 documented in [the renderer README](src/renderer/README.md). Narrow desktop
 emulation is not a physical-phone performance test.
+
+Silent-loop bytes need a Chromium build with WebCodecs. From the identity kit
+dialog, choose 10 fps for the shorter encode (80 frames). The saved MP4 should
+play for 8 seconds with no audio track. `node --test tests/loop-export.test.mjs`
+checks the clock, the sample grid, and the video-only container without a browser.
 
 ## Source and adoption terms
 
