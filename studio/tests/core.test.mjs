@@ -74,6 +74,15 @@ test('roster normalization preserves original public identity and aggregate rule
   assert.deepEqual(generateDefinition(artist, { checkedAt: source.rosterCheckedAt }).props, oxquan.expected.props);
 });
 
+test('unresolved identities and unreconciled songs never become eligible', () => {
+  const song = oxquan.source.artist.songs[0];
+  const unresolved = normalizeRoster({ artists: [{ name: 'Unknown' }] }, { songs: [{ ...song, musicLink: 'https://example.com/track' }] });
+  assert.equal(unresolved.counts.birthEligible, 0);
+  assert.equal(unresolved.counts.unresolvedSongs, 1);
+  const invalid = normalizeRoster({}, { songs: [{ ...song, battles: song.battles + 1 }] });
+  assert.equal(invalid.artists[0].eligibility.canBirth, false);
+});
+
 test('unresolved wallet keys preserve case-sensitive Solana addresses', () => {
   const checkedAt = '2026-09-13T00:00:00.000Z';
   const upper = '9xMBJbs3xZ1CwpR75U7b4vpTD3ou3HbVzuHiLRE21Jgo';
@@ -92,15 +101,6 @@ test('unresolved wallet keys preserve case-sensitive Solana addresses', () => {
     `wavewarz:wallet:${upper}`,
   ].sort());
   assert.equal(roster.artists.find((artist) => artist.displayName === 'Case A').identity.wallet, upper);
-});
-
-test('unresolved identities and unreconciled songs never become eligible', () => {
-  const song = oxquan.source.artist.songs[0];
-  const unresolved = normalizeRoster({ artists: [{ name: 'Unknown' }] }, { songs: [{ ...song, musicLink: 'https://example.com/track' }] });
-  assert.equal(unresolved.counts.birthEligible, 0);
-  assert.equal(unresolved.counts.unresolvedSongs, 1);
-  const invalid = normalizeRoster({}, { songs: [{ ...song, battles: song.battles + 1 }] });
-  assert.equal(invalid.artists[0].eligibility.canBirth, false);
 });
 
 test('same checkpoint generates reproducible envelope without changing input', () => {
