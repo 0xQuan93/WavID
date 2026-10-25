@@ -1,19 +1,49 @@
 import { canonicalSha256 } from '../core/index.mjs';
 
 export const filenameFor = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'artist';
+export const RASTER_SIZES = [1080, 2160];
+const RASTER_REFERENCE = 1080;
+
 export function downloadFile(blob, filename) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url; anchor.download = filename; anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
-export async function rasterize(svg, size = 1080) {
-  if (![1080, 2160].includes(size)) throw new Error('Unsupported still size.');
+
+const scaledMetric = (value, scale) => String(Math.round(Number(value) * scale * 1e6) / 1e6);
+
+// non-scaling-stroke widths and dashes are viewport pixels. At 2160 they would
+// otherwise be half the reference weight. Blur already follows the viewBox.
+export function scaleSvgForRaster(markup, size = RASTER_REFERENCE) {
+  if (!RASTER_SIZES.includes(size)) throw new Error('Unsupported still size.');
+  if (size === RASTER_REFERENCE) return markup;
+  const scale = size / RASTER_REFERENCE;
+  return markup.replace(/<[^>]*>/g, (tag) => {
+    const effect = tag.match(/\bvector-effect\s*=\s*(["'])([^"']*)\1/);
+    if (!effect || effect[2] !== 'non-scaling-stroke') return tag;
+    return tag
+      .replace(/\bstroke-width\s*=\s*(["'])([0-9.]+)\1/, (_, quote, value) => `stroke-width=${quote}${scaledMetric(value, scale)}${quote}`)
+      .replace(/\bstroke-dasharray\s*=\s*(["'])([^"']*)\1/, (_, quote, value) => {
+        const scaled = value.trim().split(/[\s,]+/).filter(Boolean).map((part) => scaledMetric(part, scale)).join(' ');
+        return `stroke-dasharray=${quote}${scaled}${quote}`;
+      });
+  });
+}
+
+export function svgMarkupForRaster(svg, size = RASTER_REFERENCE) {
+  if (!RASTER_SIZES.includes(size)) throw new Error('Unsupported still size.');
   const node = svg.cloneNode(true);
   node.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  node.setAttribute('width', String(size)); node.setAttribute('height', String(size));
-  node.style.width = `${size}px`; node.style.height = `${size}px`;
-  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(node)], {type:'image/svg+xml;charset=utf-8'}));
+  node.setAttribute('width', String(size));
+  node.setAttribute('height', String(size));
+  node.style.width = `${size}px`;
+  node.style.height = `${size}px`;
+  return scaleSvgForRaster(new XMLSerializer().serializeToString(node), size);
+}
+
+export async function drawSvgToCanvas(svg, size = RASTER_REFERENCE) {
+  const url = URL.createObjectURL(new Blob([svgMarkupForRaster(svg, size)], {type:'image/svg+xml;charset=utf-8'}));
   try {
     const image = new Image();
     await new Promise((resolve, reject) => {
@@ -22,14 +52,20 @@ export async function rasterize(svg, size = 1080) {
       image.onerror = () => {clearTimeout(timeout);reject(new Error('This browser could not rasterize the artwork.'));};
       image.src = url;
     });
-    const canvas = document.createElement('canvas');canvas.width=canvas.height=size;
-    const context=canvas.getContext('2d');
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const context = canvas.getContext('2d');
     if (!context) throw new Error('Canvas export is unavailable in this browser.');
-    context.drawImage(image,0,0,size,size);
-    const blob = await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
-    if (!blob) throw new Error('PNG encoding is unavailable.');
-    return blob;
+    context.drawImage(image, 0, 0, size, size);
+    return canvas;
   } finally {URL.revokeObjectURL(url);}
+}
+
+export async function rasterize(svg, size = RASTER_REFERENCE) {
+  const canvas = await drawSvgToCanvas(svg, size);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  if (!blob) throw new Error('PNG encoding is unavailable.');
+  return blob;
 }
 
 export async function createArtifactReceipt({png, portable, frame, size, filename, createdAt = new Date().toISOString()}) {

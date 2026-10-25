@@ -81,7 +81,10 @@ Body geometry is preserved. Original HTML/CSS grit, dust, scanlines, background 
 vignette are represented as SVG rectangles, patterns and gradients so downloads
 contain the complete artwork. SVG/CSS filter compositing can differ between browser
 engines; this is not a claim of pixel-identical reproduction of Remotion video.
-1080 px is the fidelity reference size. The original non-scaling strokes are retained.
+1080 px is the fidelity reference size. The original non-scaling strokes are retained
+on screen. A 2160 export scales those viewport-pixel stroke widths and dash lengths
+by two so the still keeps the 1080 weight; CSS blur and `feGaussianBlur` already
+follow the viewBox and are not scaled again.
 
 Each new frame computes three complete material fields (132 samples per trace) and
 paints displacement, bloom and film noise. Mobile realtime performance is not assumed.

@@ -240,8 +240,9 @@ Geometric agreement is distinct from
 pixel parity: the browser uses SVG approximations of the original film and
 background layers, and browser filter compositing varies. Do not describe a
 matching material hash as proof that two PNGs are byte-identical. Current
-downloads are browser stills at 1080 or 2160 square; no production MP4 export
-worker is included.
+downloads are browser stills at 1080 or 2160 square. The 2160 still scales
+viewport-pixel stroke width and dash length so non-scaling strokes keep the 1080
+reference weight. No production MP4 export worker is included.
 
 ## Deployment boundary
 

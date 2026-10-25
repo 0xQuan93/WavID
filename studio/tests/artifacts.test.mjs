@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {crc32,createZip,createArtifactReceipt} from '../src/studio/files.mjs';
+import {crc32,createZip,createArtifactReceipt,scaleSvgForRaster} from '../src/studio/files.mjs';
 import {createPortableExport,canonicalSha256} from '../src/core/index.mjs';
 
 test('ZIP records contain UTF-8 filenames, valid CRCs and matching central offsets',async()=>{
@@ -21,6 +21,22 @@ test('ZIP records contain UTF-8 filenames, valid CRCs and matching central offse
   for(const expected of offsets){assert.equal(view.getUint32(offset,true),0x02014b50);assert.equal(view.getUint32(offset+42,true),expected);offset+=46+view.getUint16(offset+28,true);}
   assert.equal(view.getUint32(offset,true),0x06054b50);assert.equal(view.getUint32(offset+16,true),centralStart);assert.equal(view.getUint16(offset+10,true),2);
   await assert.rejects(()=>createZip([{name:'../escape',data:'x'}]),/filename/);
+});
+
+test('2160 raster markup keeps 1080 non-scaling stroke weight and dash pitch', () => {
+  const path = '<path d="M0 0 L10 2.5" fill="none" stroke-dasharray="58.2 3.4" stroke-width="1.75" vector-effect="non-scaling-stroke"></path>';
+  const plain = '<path d="M9 9" stroke-width="4" style="filter: blur(0.35px)"></path>';
+  const markup = `<svg>${path}${plain}</svg>`;
+  assert.equal(scaleSvgForRaster(markup, 1080), markup);
+  const scaled = scaleSvgForRaster(markup, 2160);
+  assert.match(scaled, /d="M0 0 L10 2.5"/);
+  assert.match(scaled, /stroke-width="3.5"/);
+  assert.match(scaled, /stroke-dasharray="116.4 6.8"/);
+  assert.match(scaled, /stroke-width="4"/);
+  assert.match(scaled, /blur\(0\.35px\)/);
+  const quoted = `<path vector-effect='non-scaling-stroke' stroke-width='2' stroke-dasharray='6, 2'/>`;
+  assert.equal(scaleSvgForRaster(quoted, 2160), `<path vector-effect='non-scaling-stroke' stroke-width='4' stroke-dasharray='12 4'/>`);
+  assert.throws(() => scaleSvgForRaster(markup, 720), /Unsupported still size/);
 });
 
 test('artifact receipt binds actual bytes, source, props and frame without claiming authority',async()=>{
