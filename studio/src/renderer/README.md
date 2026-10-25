@@ -24,8 +24,11 @@ return prepared ? <WavIdRenderer
 ```
 
 The caller owns requested-frame changes and playback policy. Start paused and
-require explicit play; honor reduced motion. For a still export after seeking,
-wait for `busy === false`; name it using `prepared.frame` or the SVG `data-frame`.
+require explicit play; honor reduced motion. The studio anchors play to the
+30 fps material clock and may still skip samples when preparation is slower
+than that clock. A silent loop export waits for each sampled frame instead of
+skipping. For a still export after seeking, wait for `busy === false`; name it
+using `prepared.frame` or the SVG `data-frame`.
 The renderer rejects prepared geometry belonging to another definition or frame.
 Definition objects must be immutable and retain their reference until changed.
 

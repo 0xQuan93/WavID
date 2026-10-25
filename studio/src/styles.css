@@ -86,6 +86,9 @@
 .wavid-studio .kit-contents svg { color: var(--green); }
 .wavid-studio .size-label { display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #b2c9b9; }
 .wavid-studio .size-label select { padding: 12px; font: 12px inherit; color: #e0eee4; background: #15251b; border: 1px solid #4a6953; border-radius: 4px; }
+.wavid-studio .loop-rate { margin-top: 22px; }
+.wavid-studio .loop-export { margin-top: 8px; }
+.wavid-studio .cancel-export { margin-left: 12px; border: 0; background: none; color: inherit; font-size: 11px; text-decoration: underline; cursor: pointer; }
 .wavid-studio[data-focus=true] { grid-template-columns: 1fr; }
 .wavid-studio[data-focus=true] .roster-panel, .wavid-studio[data-focus=true] .inspector, .wavid-studio[data-focus=true] .history-strip, .wavid-studio[data-focus=true] .coverage-note, .wavid-studio[data-focus=true] footer { display: none; }
 .wavid-studio[data-focus=true] .instrument-layout { display: block; max-width: 1200px; margin: auto; }

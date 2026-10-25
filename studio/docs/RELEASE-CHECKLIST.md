@@ -88,3 +88,14 @@ changes and WaveWarz integration are deliberately not performed by this branch.
 The studio verifies unsigned file relationships. It does not authenticate artist
 control, certify ownership, provide trusted timestamps, mint or publish profiles.
 Those boundaries are part of the implementation, not merely this checklist.
+
+## Local export after 0.2.0
+
+- 2160 stills scale non-scaling stroke width and dash length so they keep the
+  1080 reference weight. CSS blur and `feGaussianBlur` already follow the viewBox.
+- The studio can save a silent browser H.264 loop at 10, 15, or 30 fps.
+  Provenance inside the file is `wavid-browser-loop/1.0` and sets
+  `productionMaster: false`. The production manifest master (CRF 14, BT.709,
+  audio none) is still unrendered. The loop has no audio track.
+- Play preview uses an anchored 30 fps clock. The worker may still skip frames
+  in the preview. The downloaded loop does not.
