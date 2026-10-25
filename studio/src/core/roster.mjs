@@ -173,7 +173,9 @@ export function buildRosterSnapshot({ artistsPayload, songsPayload, retrievedAt 
 
   for (const [index, artist] of artistRows.entries()) {
     if (matchedMainArtists.has(index)) continue;
-    const stablePart = artist.wallet ? `wallet:${key(artist.wallet)}` : `name:${safeSlug(artist.name)}`;
+    // Solana addresses are case-sensitive base58. Folding the wallet collides
+    // distinct addresses and makes the key disagree with the displayed wallet.
+    const stablePart = artist.wallet ? `wallet:${artist.wallet}` : `name:${safeSlug(artist.name)}`;
     roster.push({
       artistKey: `wavewarz:${stablePart}`,
       displayName: artist.name || 'Unresolved artist',
