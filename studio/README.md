@@ -52,6 +52,7 @@ about 43 MB on the initial Linux installation.
 - **Create identity kit** packages a 1080 or 2160 square PNG, portable definition,
   and unsigned receipt in one ZIP. The receipt hashes the exact PNG bytes and
   records its source, definition, material, renderer version and displayed frame.
+  2160 stills keep the 1080 reference stroke weight and dash pitch.
 
 Collections and comparison baselines live only in the current browser tab.
 Downloads are the persistence mechanism; keep the original JSON to reproduce
