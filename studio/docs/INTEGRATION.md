@@ -18,6 +18,7 @@ generation does not implement that complete protocol.
 | `src/core/index.mjs` | Normalize observations, validate reconciled records, derive definitions, verify portable files | Supply observations and explicit checkpoint time; preserve original versions |
 | `src/renderer/index.ts` | React/SVG artwork at an explicit frame | Transport, visibility, reduced motion, layout and error handling |
 | `src/studio/WavIdStudio.jsx` | Embeddable studio, with collection, transport, inspector and export controls | Supply navigation, account context and any persistence |
+| `src/battle/` | Delayed live-battle observation and dual material-v1 preview | Keep the poll in the browser. Do not treat it as a checkpoint source |
 | `src/main.jsx` | Standalone React mount | Replace with the host's route mounting |
 | `public/fixtures/` | Four frozen examples and regression inputs | Present as historical observations; retain source attribution |
 
@@ -164,6 +165,35 @@ The existing paginated battle feed is not a drop-in replacement for normalized
 song totals. Any new aggregation needs explicit reconciliation rules and tests;
 do not silently mix it into historic material-v1 checkpoints.
 
+## Live battle panel
+
+`src/battle/` polls `GET /api/public/battles?live=true` from the visitor's
+browser while the tab is visible. The gap between checks is at least 30
+seconds. Requests omit credentials. There is no websocket, no added backend,
+and no chain RPC. A failed check keeps the last successful sample. Every
+sample carries an explicit `checkedAt`.
+
+The panel is a delayed observation. Its label is `observed every ~30s · delayed`.
+The countdown is counted from the last sample's `endsAt`. When the response
+includes a row with `live: true`, that one battle is shown. An empty list is
+a quiet empty state. Rows with `live: false` are ignored, including when they
+are the only row.
+
+Each side becomes `wavewarz:audius:<handle>` only from an `https://audius.co`
+track link. Wallet-only Main Event rows stay unresolved and do not generate.
+If that key matches an eligible artist in the roster snapshot already loaded,
+the panel draws that artist's material-v1 form at frame 88. Pools, volumes,
+and factors are status chrome. They are not inputs to
+`wavewarz-roster-to-material-v1`.
+
+`wavewarz-battle-overlay-v0` names a future interaction between the two forms.
+This version does not change props. When `winnerDecided` and `winnerSide` are
+both set, the panel offers a button that reuses the studio's roster refresh.
+The snapshot on screen stays until that load finishes. If the winner resolved
+to an Audius identity that can generate, the refresh holds a portable export
+first so History can run `compareCheckpoints` for that same artist key. The
+plan does not call compare by itself and does not rewrite an old snapshot.
+
 ## Integrity and artist control
 
 `createPortableExport(artist, checkpoint)` includes the source, generated
@@ -206,6 +236,8 @@ write endpoint or account flow is supplied by this studio.
 | Contract | Current identifier |
 | --- | --- |
 | Visual mapping | `wavewarz-roster-to-material-v1/1.0.0` |
+| Live battle observation | `wavewarz-live-battle-observation/0` |
+| Battle overlay scaffold | `wavewarz-battle-overlay-v0` |
 | Browser definition | `wavid-browser-definition/1.0.0` |
 | Portable envelope | `wavid-browser-export/1.0` |
 | Genome | `wavid-artist-genome/1.0.0` |

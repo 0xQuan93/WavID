@@ -10,7 +10,10 @@ Verifiable creative history as living visual identity.
 The studio turns public WaveWarz observations into deterministic material-v1
 forms on the visitor's device. It includes a live roster view, inspectable
 history and fingerprints, portable definitions, and PNG identity kits with
-exact-artifact receipts. It needs no generation backend or model installation.
+exact-artifact receipts. A delayed battle strip can show the two current
+opponents from that same snapshot. It polls the public battle feed in the
+browser and does not change the material-v1 mapping. It needs no generation
+backend or model installation.
 
 ```sh
 cd studio

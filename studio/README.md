@@ -40,6 +40,12 @@ about 43 MB on the initial Linux installation.
   OxQuan, GodclouD, frameworkfortune and BetterCallZaal.
 - Search or filter the collection; explicitly load the current WaveWarz public
   leaderboards when wanted. A failed refresh leaves the current collection intact.
+- While the tab is visible, a delayed battle strip polls the public live-battle
+  feed about every 30 seconds. It can show two material-v1 forms from the
+  roster snapshot already loaded, plus the last observation's timer, pools,
+  and factors. The label says the check is delayed. It does not open a
+  websocket or change material-v1. If a winner is recorded, refresh the roster
+  snapshot yourself; the current snapshot stays until that load finishes.
 - The material-v1 form opens paused at frame 88. Play, scrub its eight-second
   timeline, or use focus view. Play follows a 30 fps clock anchored to that
   loop. The picture can skip frames when geometry is slower than the clock;
