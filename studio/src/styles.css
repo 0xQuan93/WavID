@@ -90,7 +90,7 @@
 .wavid-studio .loop-export { margin-top: 8px; }
 .wavid-studio .cancel-export { margin-left: 12px; border: 0; background: none; color: inherit; font-size: 11px; text-decoration: underline; cursor: pointer; }
 .wavid-studio[data-focus=true] { grid-template-columns: 1fr; }
-.wavid-studio[data-focus=true] .roster-panel, .wavid-studio[data-focus=true] .inspector, .wavid-studio[data-focus=true] .history-strip, .wavid-studio[data-focus=true] .coverage-note, .wavid-studio[data-focus=true] footer { display: none; }
+.wavid-studio[data-focus=true] .roster-panel, .wavid-studio[data-focus=true] .inspector, .wavid-studio[data-focus=true] .history-strip, .wavid-studio[data-focus=true] .coverage-note, .wavid-studio[data-focus=true] .battle-panel, .wavid-studio[data-focus=true] footer { display: none; }
 .wavid-studio[data-focus=true] .instrument-layout { display: block; max-width: 1200px; margin: auto; }
 .wavid-studio[data-focus=true] .workspace-heading { max-width: 1200px; margin: 0 auto 22px; }
 .wavid-studio[data-focus=true] .preview-stage { height: min(70vh, 850px); aspect-ratio: auto; }
@@ -120,3 +120,29 @@
   .wavid-studio .export-dialog h2 { font-size: 32px; }
   .wavid-studio[data-focus=true] .preview-stage { height: 64vh; }
 }
+.wavid-studio .battle-panel { border: 1px solid var(--line); border-radius: 7px; background: #0c1511; padding: 14px 16px 12px; margin: 0 0 18px; }
+.wavid-studio .battle-panel[data-battle-status="empty"], .wavid-studio .battle-panel[data-battle-status="pending"] { padding-bottom: 10px; }
+.wavid-studio .battle-heading, .wavid-studio .battle-statusline, .wavid-studio .battle-side header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.wavid-studio .battle-delay { font: 10px var(--mono); letter-spacing: .4px; color: var(--green); }
+.wavid-studio .battle-quiet, .wavid-studio .battle-note { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 8px 0 0; }
+.wavid-studio .battle-meta, .wavid-studio .battle-wallet, .wavid-studio .battle-livecount { font: 9px var(--mono); color: #8ea498; margin: 8px 0 0; overflow-wrap: anywhere; }
+.wavid-studio .battle-statusline { margin-top: 8px; }
+.wavid-studio .battle-clock { font: 12px var(--mono); color: #d5e6d8; }
+.wavid-studio .battle-statusline a, .wavid-studio .battle-side a { font-size: 11px; color: #c5e6cf; text-decoration: underline; }
+.wavid-studio .battle-duel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; align-items: stretch; }
+.wavid-studio .battle-side { border: 1px solid #2c4034; border-radius: 6px; padding: 12px; min-width: 0; background: #0a120e; display: flex; flex-direction: column; }
+.wavid-studio .battle-side.winner { border-color: #3f6b4c; }
+.wavid-studio .battle-winner { font: 8px var(--mono); letter-spacing: 1px; color: var(--green); }
+.wavid-studio .battle-side h3 { font-size: 16px; font-weight: 500; letter-spacing: -.3px; margin: 6px 0 0; overflow-wrap: anywhere; }
+.wavid-studio .battle-meters { display: flex; gap: 18px; margin: 10px 0 0; }
+.wavid-studio .battle-meters dt { font: 8px var(--mono); letter-spacing: 1px; color: #8ea498; }
+.wavid-studio .battle-meters dd { margin: 3px 0 0; font-size: 13px; }
+.wavid-studio .battle-stage { width: min(100%, 220px); aspect-ratio: 1; margin-top: 10px; background: #050b07; border-radius: 4px; overflow: hidden; display: grid; place-items: center; }
+.wavid-studio .battle-stage svg { width: 100%; height: 100%; display: block; }
+.wavid-studio .battle-unresolved { margin: 10px 0 0; padding: 18px 10px; text-align: center; border: 1px dashed #3a5242; border-radius: 4px; color: #9aafa1; font-size: 11px; }
+.wavid-studio .battle-factors { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.wavid-studio .battle-factors li { border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-size: 10px; color: #c5d7c9; overflow-wrap: anywhere; max-width: 100%; }
+.wavid-studio .battle-result { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.wavid-studio .battle-result p { margin: 0; font-size: 12px; line-height: 1.6; color: #c5d6c9; }
+.wavid-studio .battle-result .outline-button { width: auto; margin-top: 8px; padding: 10px 14px; }
+@media (max-width: 700px) { .wavid-studio .battle-duel { grid-template-columns: 1fr; } }

@@ -1,0 +1,44 @@
+{
+  "updatedAt": "2026-10-25T16:00:30.000Z",
+  "count": 1,
+  "battles": [
+    {
+      "battleId": 1784343368,
+      "type": "quick",
+      "live": true,
+      "winnerDecided": false,
+      "winnerSide": null,
+      "artist1": {
+        "name": "igothop$",
+        "wallet": "HqHjexamplevvS",
+        "musicLink": "https://audius.co/_0xQuan/igothop",
+        "profilePictureUrl": null,
+        "twitterHandle": null,
+        "albumArtUrl": "https://example.invalid/album.jpg",
+        "poolSol": 1.25,
+        "volumeSol": 3.5
+      },
+      "artist2": {
+        "name": "Fuck yo feelingZ",
+        "wallet": "JtcZexample7X",
+        "musicLink": "https://audius.co/GodclouD/fuck-yo-feelingz",
+        "profilePictureUrl": "https://unavatar.io/twitter/example",
+        "twitterHandle": "GodclouD",
+        "albumArtUrl": null,
+        "poolSol": 0.4,
+        "volumeSol": 1.1
+      },
+      "factors": {
+        "pollWinner": "artist2",
+        "pollVotesArtist1": 1,
+        "pollVotesArtist2": 4,
+        "djWavyWinner": null,
+        "djWavyReasoning": null
+      },
+      "imageUrl": "https://assets.wavewarz.com/battles/example.jpg",
+      "createdAt": "2026-10-25T16:00:00.000Z",
+      "endsAt": "2026-10-25T16:08:00.000Z",
+      "url": "https://wavewarz.info/battles/1784343368"
+    }
+  ]
+}

@@ -18,6 +18,7 @@ generation does not implement that complete protocol.
 | `src/core/index.mjs` | Normalize observations, validate reconciled records, derive definitions, verify portable files | Supply observations and explicit checkpoint time; preserve original versions |
 | `src/renderer/index.ts` | React/SVG artwork at an explicit frame | Transport, visibility, reduced motion, layout and error handling |
 | `src/studio/WavIdStudio.jsx` | Embeddable studio, with collection, transport, inspector and export controls | Supply navigation, account context and any persistence |
+| `src/battle/` | Delayed live-battle observation and dual material-v1 preview | Keep the poll in the browser. Do not treat it as a checkpoint source |
 | `src/main.jsx` | Standalone React mount | Replace with the host's route mounting |
 | `public/fixtures/` | Four frozen examples and regression inputs | Present as historical observations; retain source attribution |
 
@@ -28,7 +29,8 @@ before incorporating the renderer into another distribution.
 
 ## Embed the complete studio
 
-Copy `src/core/`, `src/renderer/`, `src/studio/` and `src/styles.css` together,
+Copy `src/core/`, `src/renderer/`, `src/studio/`, `src/battle/` and `src/styles.css`
+together,
 retaining their notices. The component stylesheet is scoped to `.wavid-studio`;
 the standalone body's reset is separate in `src/standalone.css` and is not needed
 by the host. Render the studio inside the host's client boundary.
@@ -164,6 +166,42 @@ The existing paginated battle feed is not a drop-in replacement for normalized
 song totals. Any new aggregation needs explicit reconciliation rules and tests;
 do not silently mix it into historic material-v1 checkpoints.
 
+## Live battle panel
+
+`src/battle/` polls `GET /api/public/battles?live=true` from the visitor's
+browser while the tab is visible. The gap between checks is at least 30
+seconds. A hung check is abandoned after 20 seconds. Requests omit
+credentials. There is no websocket, no added backend, and no chain RPC. A
+failed check keeps the last successful sample. Every
+sample carries an explicit `checkedAt`.
+
+The panel is a delayed observation. Its label is `observed every ~30s · delayed`.
+The countdown is counted from the last sample's `endsAt`. When the response
+includes a row with `live: true`, that one battle is shown. An empty `battles`
+array is a quiet empty state. A successful HTTP response with no battle list
+is a failed check and keeps the last sample. Rows with `live: false` are
+ignored, including when they are the only row. Pool size is shown as a charts
+factor only on Quick Battles.
+
+Each side becomes `wavewarz:audius:<handle>` only from an `https://audius.co`
+track link, including handles that contain periods. Off-platform `musicLink`
+values (for example an X profile or a project site) are dropped, not rendered
+as hrefs. Wallet-only or off-platform Main Event rows stay unresolved and do
+not generate. Solana wallets keep their published base58 case. Extra feed
+fields such as album art are ignored; the panel does not fetch remote media.
+If that key matches an eligible artist in the roster snapshot already loaded,
+the panel draws that artist's material-v1 form at frame 88. Pools, volumes,
+and factors are status chrome. They are not inputs to
+`wavewarz-roster-to-material-v1`.
+
+`wavewarz-battle-overlay-v0` names a future interaction between the two forms.
+This version does not change props. When `winnerDecided` and `winnerSide` are
+both set, the panel offers a button that reuses the studio's roster refresh.
+The snapshot on screen stays until that load finishes. If the winner resolved
+to an Audius identity that can generate, the refresh holds a portable export
+first so History can run `compareCheckpoints` for that same artist key. The
+plan does not call compare by itself and does not rewrite an old snapshot.
+
 ## Integrity and artist control
 
 `createPortableExport(artist, checkpoint)` includes the source, generated
@@ -206,6 +244,8 @@ write endpoint or account flow is supplied by this studio.
 | Contract | Current identifier |
 | --- | --- |
 | Visual mapping | `wavewarz-roster-to-material-v1/1.0.0` |
+| Live battle observation | `wavewarz-live-battle-observation/0` |
+| Battle overlay scaffold | `wavewarz-battle-overlay-v0` |
 | Browser definition | `wavid-browser-definition/1.0.0` |
 | Portable envelope | `wavid-browser-export/1.0` |
 | Genome | `wavid-artist-genome/1.0.0` |
