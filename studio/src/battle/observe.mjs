@@ -146,8 +146,8 @@ function sampleShell(checkedAt, payload, status, battle, liveCount) {
 export function parseLiveBattleResponse(payload, { checkedAt } = {}) {
   const stamped = validateTimestamp(checkedAt, 'Battle observation');
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Live battle response was not an object.');
-  if (payload.battles != null && !Array.isArray(payload.battles)) throw new Error('Live battle response did not include a battle list.');
-  const battles = Array.isArray(payload.battles) ? payload.battles : [];
+  if (!Array.isArray(payload.battles)) throw new Error('Live battle response did not include a battle list.');
+  const battles = payload.battles;
   const live = battles.filter((entry) => entry && typeof entry === 'object' && !Array.isArray(entry) && entry.live === true);
   if (!live.length) return sampleShell(stamped, payload, 'empty', null, 0);
   return sampleShell(stamped, payload, 'live', normalizeBattle(live[0]), live.length);
@@ -169,6 +169,7 @@ export function resolveBattleArtists(battle, artists = []) {
 }
 
 export function chartsLean(battle) {
+  if (battle?.type !== 'quick') return null;
   const left = battle?.sides?.artist1?.poolSol;
   const right = battle?.sides?.artist2?.poolSol;
   if (left == null || right == null || left === right) return null;

@@ -177,9 +177,11 @@ sample carries an explicit `checkedAt`.
 
 The panel is a delayed observation. Its label is `observed every ~30s · delayed`.
 The countdown is counted from the last sample's `endsAt`. When the response
-includes a row with `live: true`, that one battle is shown. An empty list is
-a quiet empty state. Rows with `live: false` are ignored, including when they
-are the only row.
+includes a row with `live: true`, that one battle is shown. An empty `battles`
+array is a quiet empty state. A successful HTTP response with no battle list
+is a failed check and keeps the last sample. Rows with `live: false` are
+ignored, including when they are the only row. Pool size is shown as a charts
+factor only on Quick Battles.
 
 Each side becomes `wavewarz:audius:<handle>` only from an `https://audius.co`
 track link, including handles that contain periods. Off-platform `musicLink`

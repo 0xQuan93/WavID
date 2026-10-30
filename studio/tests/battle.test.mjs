@@ -116,7 +116,7 @@ test('a live payload resolves both sides and an empty feed stays empty', () => {
   assert.equal(resolved[0].unresolvedReason, null);
   assert.match(factorLines(sample.battle).find((line) => line.key === 'charts').text, /not the result/);
   assert.equal(parseLiveBattleResponse({ battles: [], updatedAt: CHECKED }, { checkedAt: CHECKED }).status, 'empty');
-  assert.equal(parseLiveBattleResponse({ updatedAt: CHECKED }, { checkedAt: CHECKED }).battle, null);
+  assert.throws(() => parseLiveBattleResponse({ updatedAt: CHECKED }, { checkedAt: CHECKED }), /battle list/);
   const settled = structuredClone(livePayload);
   settled.battles[0].live = false;
   assert.equal(parseLiveBattleResponse(settled, { checkedAt: CHECKED }).status, 'empty');
@@ -154,6 +154,8 @@ test('wallet-only sides stay unresolved and a recorded winner only plans a refre
   assert.equal(plan.beforeAfter.available, false);
   assert.equal(plan.beforeAfter.method, 'compareCheckpoints');
   assert.equal(typeof plan.beforeAfter.note, 'string');
+  assert.equal(factorLines(sample.battle).some((line) => line.key === 'charts'), false);
+  assert.ok(factorLines(sample.battle).some((line) => line.key === 'judge'));
   const undecided = parseLiveBattleResponse(livePayload, { checkedAt: CHECKED });
   assert.equal(battleResultPlan(undecided), null);
   const missingSide = structuredClone(payload);
@@ -276,6 +278,7 @@ test('parser rejects samples without checkedAt and keeps non-lists as failures',
   assert.throws(() => parseLiveBattleResponse({ battles: [] }, {}), /Battle observation/);
   assert.throws(() => parseLiveBattleResponse(['nope'], { checkedAt: CHECKED }), /not an object/);
   assert.throws(() => parseLiveBattleResponse({ battles: {} }, { checkedAt: CHECKED }), /battle list/);
+  assert.throws(() => parseLiveBattleResponse({ error: 'unavailable', updatedAt: CHECKED }, { checkedAt: CHECKED }), /battle list/);
 });
 
 test('the observation clock describes the last sample, including an elapsed window', () => {
@@ -344,6 +347,13 @@ test('the poller fetches only the live battle route, without credentials, and on
   assert.equal(poller.snapshot().lastError.message, 'network down');
 
   ticks.advance(30_000);
+  body = { updatedAt: CHECKED };
+  await ticks.fireDue();
+  assert.equal(calls.length, 3);
+  assert.equal(poller.snapshot().sample.status, 'live');
+  assert.match(poller.snapshot().lastError.message, /battle list/);
+
+  ticks.advance(30_000);
   body = { battles: [], updatedAt: CHECKED };
   await ticks.fireDue();
   assert.equal(poller.snapshot().sample.status, 'empty');
@@ -354,7 +364,7 @@ test('the poller fetches only the live battle route, without credentials, and on
   poller.setVisible(false);
   ticks.advance(120_000);
   await ticks.fireDue();
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.equal(ticks.pending().length, 0);
   assert.ok(pending.every((item) => item.cancelled));
   poller.stop();
