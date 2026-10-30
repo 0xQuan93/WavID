@@ -76,6 +76,8 @@ function normalizeSide(raw, id) {
   return {
     id,
     label: text(record.name, 200) || 'Unnamed side',
+    // Preserve published base58 wallet case. Off-platform musicLink values
+    // never become hrefs or artist keys; only https://audius.co identities do.
     wallet: text(record.wallet, 120),
     musicLink: identity?.trackUrl || identity?.profileUrl || null,
     artistKey: identity?.artistKey || null,
@@ -159,7 +161,7 @@ export function resolveBattleArtists(battle, artists = []) {
     const found = side.artistKey ? list.find((entry) => entry?.artistKey === side.artistKey) || null : null;
     const canRender = found?.eligibility?.canBirth === true;
     let unresolvedReason = null;
-    if (!side.resolved) unresolvedReason = 'No Audius track link on this side. Wallet-only records stay unresolved.';
+    if (!side.resolved) unresolvedReason = 'No Audius track link on this side. Wallet-only or off-platform links stay unresolved.';
     else if (!found) unresolvedReason = 'This Audius identity is not in the current roster snapshot.';
     else if (!canRender) unresolvedReason = found.eligibility?.reason || 'This identity cannot generate a material-v1 form.';
     return { side, artist: canRender ? found : null, unresolvedReason };
@@ -209,11 +211,12 @@ export function formatObservationClock(endsAt, nowMs) {
   return `${body} left in the last observation`;
 }
 
-export function battleResultPlan(observation) {
+export function battleResultPlan(observation, artists = []) {
   const battle = observation?.status === 'live' ? observation.battle : null;
   if (!battle?.winnerDecided || !battle.winnerSide) return null;
   const side = battle.sides?.[battle.winnerSide];
   if (!side) return null;
+  const winner = resolveBattleArtists(battle, artists).find((entry) => entry.side.id === battle.winnerSide);
   return {
     action: 'refresh-roster-snapshot',
     autoMutate: false,
@@ -223,10 +226,18 @@ export function battleResultPlan(observation) {
     overlay: BATTLE_OVERLAY_ID,
     altersMaterialV1: false,
     beforeAfter: {
-      available: Boolean(side.artistKey),
+      available: Boolean(winner?.artist),
       method: 'compareCheckpoints',
       invoke: 'explicit',
       note: 'Hold the current portable export, refresh the leaderboard snapshot, then compareCheckpoints for this artistKey. This plan does not call compare or mutate a snapshot.',
     },
   };
+}
+
+export function chooseRefreshFocus(nextArtists, { currentKey, focusArtistKey } = {}) {
+  const list = Array.isArray(nextArtists) ? nextArtists : [];
+  const eligible = (key) => Boolean(key) && list.some((entry) => entry?.artistKey === key && entry?.eligibility?.canBirth === true);
+  if (eligible(focusArtistKey)) return focusArtistKey;
+  if (eligible(currentKey)) return currentKey;
+  return list.find((entry) => entry?.eligibility?.canBirth === true)?.artistKey || '';
 }

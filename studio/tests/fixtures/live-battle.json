@@ -12,6 +12,9 @@
         "name": "igothop$",
         "wallet": "HqHjexamplevvS",
         "musicLink": "https://audius.co/_0xQuan/igothop",
+        "profilePictureUrl": null,
+        "twitterHandle": null,
+        "albumArtUrl": "https://example.invalid/album.jpg",
         "poolSol": 1.25,
         "volumeSol": 3.5
       },
@@ -19,6 +22,9 @@
         "name": "Fuck yo feelingZ",
         "wallet": "JtcZexample7X",
         "musicLink": "https://audius.co/GodclouD/fuck-yo-feelingz",
+        "profilePictureUrl": "https://unavatar.io/twitter/example",
+        "twitterHandle": "GodclouD",
+        "albumArtUrl": null,
         "poolSol": 0.4,
         "volumeSol": 1.1
       },
@@ -29,6 +35,7 @@
         "djWavyWinner": null,
         "djWavyReasoning": null
       },
+      "imageUrl": "https://assets.wavewarz.com/battles/example.jpg",
       "createdAt": "2026-10-25T16:00:00.000Z",
       "endsAt": "2026-10-25T16:08:00.000Z",
       "url": "https://wavewarz.info/battles/1784343368"

@@ -29,7 +29,8 @@ before incorporating the renderer into another distribution.
 
 ## Embed the complete studio
 
-Copy `src/core/`, `src/renderer/`, `src/studio/` and `src/styles.css` together,
+Copy `src/core/`, `src/renderer/`, `src/studio/`, `src/battle/` and `src/styles.css`
+together,
 retaining their notices. The component stylesheet is scoped to `.wavid-studio`;
 the standalone body's reset is separate in `src/standalone.css` and is not needed
 by the host. Render the studio inside the host's client boundary.
@@ -169,8 +170,9 @@ do not silently mix it into historic material-v1 checkpoints.
 
 `src/battle/` polls `GET /api/public/battles?live=true` from the visitor's
 browser while the tab is visible. The gap between checks is at least 30
-seconds. Requests omit credentials. There is no websocket, no added backend,
-and no chain RPC. A failed check keeps the last successful sample. Every
+seconds. A hung check is abandoned after 20 seconds. Requests omit
+credentials. There is no websocket, no added backend, and no chain RPC. A
+failed check keeps the last successful sample. Every
 sample carries an explicit `checkedAt`.
 
 The panel is a delayed observation. Its label is `observed every ~30s · delayed`.
@@ -180,7 +182,11 @@ a quiet empty state. Rows with `live: false` are ignored, including when they
 are the only row.
 
 Each side becomes `wavewarz:audius:<handle>` only from an `https://audius.co`
-track link. Wallet-only Main Event rows stay unresolved and do not generate.
+track link, including handles that contain periods. Off-platform `musicLink`
+values (for example an X profile or a project site) are dropped, not rendered
+as hrefs. Wallet-only or off-platform Main Event rows stay unresolved and do
+not generate. Solana wallets keep their published base58 case. Extra feed
+fields such as album art are ignored; the panel does not fetch remote media.
 If that key matches an eligible artist in the roster snapshot already loaded,
 the panel draws that artist's material-v1 form at frame 88. Pools, volumes,
 and factors are status chrome. They are not inputs to

@@ -45,7 +45,8 @@ function BattleForm({ artist, roster, title }) {
 
 function BattleSide({ entry, roster, winner, songTitle }) {
   const heading = entry.artist?.displayName || entry.side.audiusHandle || entry.side.label;
-  return <article className={winner ? 'battle-side winner' : 'battle-side'}>
+  const sideName = entry.side.id === 'artist1' ? 'Side A' : 'Side B';
+  return <article className={winner ? 'battle-side winner' : 'battle-side'} aria-label={`${sideName}${winner ? ', recorded winner' : ''}`}>
     <header><span className="eyebrow">{entry.side.id === 'artist1' ? 'SIDE A' : 'SIDE B'}</span>{winner && <span className="battle-winner">RECORDED WINNER</span>}</header>
     <h3>{heading}</h3>
     {songTitle && entry.side.audiusHandle && songTitle !== heading && <p className="battle-quiet">{songTitle}</p>}
@@ -60,7 +61,7 @@ function BattleSide({ entry, roster, winner, songTitle }) {
   </article>;
 }
 
-export function BattlePanel({ roster = null, onRefreshRoster, refreshDisabled = false }) {
+export function BattlePanel({ roster = null, onRefreshRoster, refreshDisabled = false, refreshCooldown = 0 }) {
   const [view, setView] = useState(() => ({ visible: false, inflight: false, sample: null, lastError: null }));
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -78,19 +79,25 @@ export function BattlePanel({ roster = null, onRefreshRoster, refreshDisabled = 
   const sample = view.sample;
   const battle = sample?.status === 'live' ? sample.battle : null;
   useEffect(() => {
-    if (!battle?.endsAt) return undefined;
+    if (!battle?.endsAt || !view.visible) return undefined;
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, [battle?.endsAt, sample?.checkedAt]);
+  }, [battle?.endsAt, sample?.checkedAt, view.visible]);
   const resolved = battle ? resolveBattleArtists(battle, roster?.artists || []) : [];
-  const plan = battleResultPlan(sample);
+  const plan = battleResultPlan(sample, roster?.artists || []);
   const overlay = describeBattleOverlay(sample);
   const lines = factorLines(battle);
   const failure = view.lastError && !view.inflight
     ? (sample ? 'Last check failed. Showing the previous observation.' : 'The battle feed did not respond. Another check will run while this tab is open.')
     : '';
+  const statusText = !sample
+    ? (view.inflight ? 'Checking the public battle feed.' : 'No battle observation yet.')
+    : battle
+      ? `${typeLabel(battle.type)} observed. ${DELAY_LABEL}.`
+      : `No live battle in the last check. ${DELAY_LABEL}.`;
 
-  return <section className="battle-panel" aria-label="Live battle observation" data-overlay={overlay.id} data-observation={sample?.schema || 'pending'} data-battle-status={battle ? 'live' : sample ? 'empty' : 'pending'}>
+  return <section className="battle-panel" aria-label="Live battle observation" data-overlay={overlay.id} data-overlay-version={overlay.version} data-observation={sample?.schema || 'pending'} data-battle-status={battle ? 'live' : sample ? 'empty' : 'pending'}>
+    <p className="sr-only" aria-live="polite">{statusText}{failure ? ` ${failure}` : ''}</p>
     <div className="battle-heading">
       <span className="eyebrow">{battle ? `${typeLabel(battle.type).toUpperCase()} · DELAYED` : 'LIVE BATTLE · DELAYED'}</span>
       <span className="battle-delay">{DELAY_LABEL}</span>
@@ -99,9 +106,10 @@ export function BattlePanel({ roster = null, onRefreshRoster, refreshDisabled = 
     {sample && !battle && <p className="battle-quiet">No live battle in the last check.</p>}
     {battle && <>
       <div className="battle-statusline">
-        <span className="battle-clock">{formatObservationClock(battle.endsAt, now)}</span>
+        <span className="battle-clock" aria-hidden="true">{formatObservationClock(battle.endsAt, now)}</span>
         {battle.url && <a href={battle.url} target="_blank" rel="noreferrer">Battle page</a>}
       </div>
+      {sample.liveCount > 1 && <p className="battle-livecount">Showing the first of {sample.liveCount} live rows from this check.</p>}
       <div className="battle-duel">
         {resolved.map((entry) => <BattleSide key={entry.side.id} entry={entry} roster={roster} winner={battle.winnerDecided && battle.winnerSide === entry.side.id} songTitle={battle.type === 'quick' ? entry.side.label : ''} />)}
       </div>
@@ -110,11 +118,13 @@ export function BattlePanel({ roster = null, onRefreshRoster, refreshDisabled = 
       <p className="battle-note">Pools, volumes, and factors are battle-feed observations. They do not change the material-v1 form.</p>
       {plan && <div className="battle-result">
         <p>Recorded winner: {plan.label}. Refresh the roster snapshot when you want a new checkpoint. The form stays on the current snapshot until that load finishes.</p>
-        <button type="button" className="outline-button" disabled={refreshDisabled || !onRefreshRoster} onClick={() => onRefreshRoster?.(plan)}>Refresh roster snapshot</button>
+        <button type="button" className="outline-button" disabled={refreshDisabled || !onRefreshRoster} onClick={() => onRefreshRoster?.(plan)}>
+          {refreshCooldown > 0 ? `Refresh in ${refreshCooldown}s` : 'Refresh roster snapshot'}
+        </button>
         {plan.beforeAfter.available && <p className="battle-note">Before/after uses compareCheckpoints on the held export after that refresh. Battle pressure is not written into material-v1.</p>}
       </div>}
     </>}
-    {sample && <p className="battle-meta">Checked {sample.checkedAt}{view.visible ? '' : ' · paused while this tab is hidden'}</p>}
+    {sample && <p className="battle-meta"><time dateTime={sample.checkedAt}>Checked {sample.checkedAt}</time>{view.visible ? '' : ' · paused while this tab is hidden'}</p>}
     {failure && <p className="battle-quiet">{failure}</p>}
   </section>;
 }

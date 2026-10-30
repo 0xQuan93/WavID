@@ -6,6 +6,7 @@ import {
   DELAY_LABEL,
   artistKeyFromMusicLink,
   battleResultPlan,
+  chooseRefreshFocus,
   factorLines,
   formatObservationClock,
   parseLiveBattleResponse,
@@ -15,6 +16,7 @@ import { describeBattleOverlay } from '../src/battle/overlay-v0.mjs';
 import {
   LIVE_BATTLES_URL,
   MIN_POLL_INTERVAL_MS,
+  REQUEST_TIMEOUT_MS,
   createLiveBattlePoller,
   initialPollState,
   pollDelay,
@@ -72,11 +74,23 @@ test('audius music links become the roster artist key and unsafe links do not', 
     trackUrl: 'https://audius.co/_0xQuan/igothop',
   });
   assert.equal(artistKeyFromMusicLink('https://audius.co/GodclouD/fuck-yo-feelingz').artistKey, 'wavewarz:audius:godcloud');
+  assert.deepEqual(artistKeyFromMusicLink('https://audius.co/Delo.Dark/dey-love-dark'), {
+    handle: 'Delo.Dark',
+    artistKey: 'wavewarz:audius:delo.dark',
+    profileUrl: 'https://audius.co/Delo.Dark',
+    trackUrl: 'https://audius.co/Delo.Dark/dey-love-dark',
+  });
+  assert.equal(
+    artistKeyFromMusicLink('https://audius.co/Hurric4n3Ike/bestwavez-x-hurric4n3ike-prod-x-hurric4n3ike-432-hz').handle,
+    'Hurric4n3Ike',
+  );
   for (const link of [
     'https://example.com/track',
     'http://audius.co/GodclouD/track',
     'https://www.audius.co/GodclouD/track',
     'https://user:password@audius.co/GodclouD/track',
+    'https://x.com/_0xQuan',
+    'https://world.pkmncto.xyz/',
     'javascript:alert(1)',
     '',
   ]) assert.equal(artistKeyFromMusicLink(link), null);
@@ -91,7 +105,11 @@ test('a live payload resolves both sides and an empty feed stays empty', () => {
   assert.equal(sample.battle.sides.artist1.artistKey, 'wavewarz:audius:_0xquan');
   assert.equal(sample.battle.sides.artist2.artistKey, 'wavewarz:audius:godcloud');
   assert.equal(sample.battle.sides.artist1.poolSol, 1.25);
+  assert.equal(sample.battle.sides.artist1.musicLink, 'https://audius.co/_0xQuan/igothop');
+  assert.equal(sample.battle.sides.artist1.albumArtUrl, undefined);
+  assert.equal(sample.battle.imageUrl, undefined);
   assert.equal(sample.battle.winnerDecided, false);
+  assert.equal(sample.liveCount, 1);
   const resolved = resolveBattleArtists(sample.battle, [oxquan.source.artist, godcloud.source.artist]);
   assert.equal(resolved[0].artist.displayName, 'OxQuan');
   assert.equal(resolved[1].artist.displayName, 'GodclouD');
@@ -124,8 +142,10 @@ test('wallet-only sides stay unresolved and a recorded winner only plans a refre
   const [left, right] = resolveBattleArtists(sample.battle, [oxquan.source.artist]);
   assert.equal(left.side.artistKey, null);
   assert.equal(left.artist, null);
-  assert.match(left.unresolvedReason, /Wallet-only/);
+  assert.match(left.unresolvedReason, /Wallet-only or off-platform/);
+  assert.equal(left.side.wallet, 'HEB2wallethVt');
   assert.equal(right.side.resolved, false);
+  assert.equal(right.side.wallet, '2J32wallet8bXp');
   const plan = battleResultPlan(sample);
   assert.equal(plan.action, 'refresh-roster-snapshot');
   assert.equal(plan.autoMutate, false);
@@ -140,6 +160,100 @@ test('wallet-only sides stay unresolved and a recorded winner only plans a refre
   missingSide.battles[0].winnerDecided = true;
   missingSide.battles[0].winnerSide = null;
   assert.equal(battleResultPlan(parseLiveBattleResponse(missingSide, { checkedAt: CHECKED })), null);
+});
+
+test('off-platform Main Event music links stay unresolved and never become hrefs', () => {
+  const wallet = '4h3hs8WpJhJziQQV3TRGtHcGyhYS9WUdWX7oH7VAYat3';
+  const payload = {
+    updatedAt: '2026-10-26T01:19:39.657Z',
+    battles: [{
+      battleId: 1792976296,
+      type: 'main',
+      live: true,
+      winnerDecided: true,
+      winnerSide: 'artist2',
+      artist1: {
+        name: ' 0xQuan',
+        wallet,
+        musicLink: 'https://x.com/_0xQuan',
+        profilePictureUrl: null,
+        twitterHandle: '_0xQuan',
+        albumArtUrl: null,
+        poolSol: 0.0788,
+        volumeSol: 0.08,
+      },
+      artist2: {
+        name: 'Pokemon CTO',
+        wallet: 'E8EWyASc4DnSxyAd2BHYyuz3jcjE5Gzb6PZo9aQsATRm',
+        musicLink: 'https://world.pkmncto.xyz/',
+        profilePictureUrl: 'https://unavatar.io/twitter/pokemon_cto',
+        twitterHandle: 'pokemon_cto',
+        albumArtUrl: null,
+        poolSol: 0.3448,
+        volumeSol: 0.35,
+      },
+      factors: {
+        humanJudgeWinner: 'artist2',
+        xPollWinner: 'artist2',
+        solVoteWinner: 'artist2',
+        judgedAt: '2026-10-26T01:31:41.153+00:00',
+      },
+      imageUrl: 'https://assets.wavewarz.com/battles/1792976296192-oiy2r9.jpg',
+      createdAt: '2026-10-26T00:58:39.65762+00:00',
+      endsAt: '2026-10-26T01:19:39.657Z',
+      url: 'https://wavewarz.info/battles/1792976296',
+    }],
+  };
+  const sample = parseLiveBattleResponse(payload, { checkedAt: CHECKED });
+  assert.equal(sample.status, 'live');
+  assert.equal(sample.battle.createdAt, '2026-10-26T00:58:39.65762+00:00');
+  assert.equal(sample.battle.sides.artist1.wallet, wallet);
+  assert.equal(sample.battle.sides.artist1.musicLink, null);
+  assert.equal(sample.battle.sides.artist1.artistKey, null);
+  assert.equal(sample.battle.sides.artist2.musicLink, null);
+  const [left, right] = resolveBattleArtists(sample.battle, [oxquan.source.artist]);
+  assert.match(left.unresolvedReason, /off-platform/);
+  assert.equal(left.artist, null);
+  assert.equal(right.artist, null);
+  const plan = battleResultPlan(sample, [oxquan.source.artist]);
+  assert.equal(plan.beforeAfter.available, false);
+  assert.equal(plan.artistKey, null);
+});
+
+test('winnerDecided without winnerSide does not plan a refresh', () => {
+  const payload = structuredClone(livePayload);
+  payload.battles[0].winnerDecided = true;
+  payload.battles[0].winnerSide = null;
+  const sample = parseLiveBattleResponse(payload, { checkedAt: CHECKED });
+  assert.equal(sample.battle.winnerDecided, false);
+  assert.equal(battleResultPlan(sample, [oxquan.source.artist]), null);
+});
+
+test('before/after is available only when the winner is already eligible in the snapshot', () => {
+  const payload = structuredClone(livePayload);
+  payload.battles[0].winnerDecided = true;
+  payload.battles[0].winnerSide = 'artist1';
+  const sample = parseLiveBattleResponse(payload, { checkedAt: CHECKED });
+  assert.equal(battleResultPlan(sample, []).beforeAfter.available, false);
+  assert.equal(battleResultPlan(sample, [oxquan.source.artist]).beforeAfter.available, true);
+  assert.equal(battleResultPlan(sample, [oxquan.source.artist]).artistKey, 'wavewarz:audius:_0xquan');
+});
+
+test('refresh focus selects the winner when they appear, without borrowing another artist', () => {
+  const ox = oxquan.source.artist;
+  const god = godcloud.source.artist;
+  assert.equal(chooseRefreshFocus([ox, god], { currentKey: ox.artistKey, focusArtistKey: god.artistKey }), god.artistKey);
+  assert.equal(chooseRefreshFocus([ox], { currentKey: ox.artistKey, focusArtistKey: 'wavewarz:audius:missing' }), ox.artistKey);
+  assert.equal(chooseRefreshFocus([ox], { currentKey: 'wavewarz:audius:other', focusArtistKey: 'wavewarz:audius:missing' }), ox.artistKey);
+  assert.equal(chooseRefreshFocus([], { currentKey: ox.artistKey, focusArtistKey: ox.artistKey }), '');
+});
+
+test('two live rows keep only the first battle and report the live count', () => {
+  const payload = structuredClone(livePayload);
+  payload.battles.push({ ...payload.battles[0], battleId: 2, artist1: payload.battles[0].artist2 });
+  const sample = parseLiveBattleResponse(payload, { checkedAt: CHECKED });
+  assert.equal(sample.liveCount, 2);
+  assert.equal(sample.battle.battleId, 1784343368);
 });
 
 test('battle observations do not change a frozen material-v1 definition', () => {
@@ -284,12 +398,49 @@ test('hiding the tab during a check keeps the last good sample', async () => {
   poller.stop();
 });
 
+test('a hung live check fails after the request timeout and keeps the last sample', async () => {
+  const ticks = clock();
+  let calls = 0;
+  const poller = createLiveBattlePoller({
+    now: ticks.now,
+    schedule: ticks.schedule,
+    clearSchedule: ticks.clear,
+    requestTimeoutMs: REQUEST_TIMEOUT_MS,
+    fetchImpl: (url, init) => {
+      calls += 1;
+      if (calls === 1) return jsonResponse(livePayload);
+      return new Promise((_, reject) => {
+        init.signal.addEventListener('abort', () => {
+          const error = new Error('The operation was aborted');
+          error.name = 'AbortError';
+          reject(error);
+        });
+      });
+    },
+  });
+  poller.setVisible(true);
+  await ticks.fireDue();
+  assert.equal(poller.snapshot().sample.status, 'live');
+  ticks.advance(MIN_POLL_INTERVAL_MS);
+  const hanging = ticks.fireDue();
+  ticks.advance(REQUEST_TIMEOUT_MS);
+  await ticks.fireDue();
+  await hanging;
+  assert.equal(calls, 2);
+  assert.equal(poller.snapshot().sample.status, 'live');
+  assert.equal(poller.snapshot().lastError.message, 'WaveWarz battles took too long to respond.');
+  assert.equal(poller.snapshot().inflight, false);
+  poller.stop();
+});
+
 test('battle modules do not open a socket, a credentialed client, or a chain RPC', async () => {
   const names = ['observe.mjs', 'poll.mjs', 'overlay-v0.mjs', 'BattlePanel.jsx'];
   const source = (await Promise.all(names.map((name) => read(`../src/battle/${name}`)))).join('\n');
   assert.doesNotMatch(source, /WebSocket|supabase|wss:\/\/|solana|method:\s*['"]POST['"]/i);
+  assert.doesNotMatch(source, /<img\b/i);
   assert.match(source, /credentials:\s*'omit'/);
   assert.match(source, /live=true/);
+  assert.match(source, /wavewarz-battle-overlay-v0/);
 });
 
 test('shorter than 30 seconds is rejected by the poller', () => {
