@@ -7,7 +7,8 @@ import { previewFrameAt } from './playback.mjs';
 import { planSilentLoop } from './loop-plan.mjs';
 import { encodeSilentLoop } from './encode-loop.mjs';
 import { loadFrozenRoster, fetchPublicRoster } from './roster.mjs';
-
+import { BattlePanel } from '../battle/BattlePanel.jsx';
+import { chooseRefreshFocus } from '../battle/observe.mjs';
 
 const shortHash = (value = '') => `${String(value).slice(0, 12)}…${String(value).slice(-8)}`;
 const number = (value) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(value) || 0);
@@ -120,8 +121,9 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
     return () => {cancelAnimationFrame(timer);document.removeEventListener('visibilitychange', stop);};
   }, [playing]);
 
-  async function refreshRoster() {
+  async function refreshRoster(request) {
     if (busy || cooldown) return;
+    const focusArtistKey = request && typeof request.focusArtistKey === 'string' ? request.focusArtistKey : null;
     setBusy('Reading WaveWarz…'); setError(''); setNotice('');
     try {
       const controller = new AbortController(); fetchRef.current = controller;
@@ -130,10 +132,14 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       try { data = await (loadRoster || fetchPublicRoster)({signal:controller.signal}); }
       finally { clearTimeout(timeout); }
       if (!data.artists?.some((entry) => entry.eligibility.canBirth)) throw new Error('No eligible artists were found in these leaderboard records.');
-      if(definition) setBaseline(createPortableExport(artist,checkpoint));
+      const focusArtist = focusArtistKey ? artists.find((entry) => entry.artistKey === focusArtistKey && entry.eligibility?.canBirth) : null;
+      if (focusArtist) {
+        const held = roster?.checkpoints?.[focusArtist.artistKey] || { rosterSnapshotSha256: roster?.snapshotSha256, checkedAt: roster?.checkedAt || roster?.retrievedAt, sources: roster?.sources };
+        try { setBaseline(createPortableExport(focusArtist, held)); } catch { /* comparison stays unavailable if this snapshot cannot export */ }
+      } else if (!focusArtistKey && definition) setBaseline(createPortableExport(artist, checkpoint));
       setLastRefresh(Date.now());setNow(Date.now());
       setRoster(data); setSourceMode('live'); setQuery('');
-      setSelectedKey((current) => data.artists.some((entry) => entry.artistKey === current && entry.eligibility.canBirth) ? current : data.artists.find((entry) => entry.eligibility.canBirth).artistKey);
+      setSelectedKey((current) => chooseRefreshFocus(data.artists, { currentKey: current, focusArtistKey }));
       setNotice('Public leaderboard snapshot loaded. Coverage is limited to the returned records; this is not a complete history archive.');
     } catch (err) { setError(err.name === 'AbortError' ? 'WaveWarz took too long to respond. Your current collection is still available.' : err.message); }
     finally { setBusy(''); }
@@ -270,6 +276,7 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
     <main className="workspace" id={`workspace-${instanceId}`} tabIndex={-1}>
       <div className="workspace-heading"><div><span className="eyebrow">02 / THE LIVING SIGNATURE</span><h2>{artist ? nameOf(artist) : 'Opening the studio'}<span className="heading-dot">.</span></h2></div><div className="checkpoint"><span className="eyebrow">{sourceMode === 'live' ? 'OBSERVED' : 'CHECKPOINT'}</span><span>{prettyDate(checkpoint.checkedAt)}</span></div></div>
       <div className="feedback" aria-live="polite">{busy && <p className="busy">{busy}{exportingLoop && <button type="button" className="cancel-export" onClick={() => exportAbort.current?.abort()}>Cancel</button>}</p>}{(error||renderError) && <p className="error" role="alert">{error||renderError?.message||String(renderError)}</p>}{notice && <p className="notice">{notice}</p>}</div>
+      <BattlePanel roster={roster} refreshDisabled={!!busy || cooldown>0} refreshCooldown={cooldown} onRefreshRoster={(plan) => refreshRoster(plan?.artistKey ? { focusArtistKey: plan.artistKey } : {})} />
       <div className="instrument-layout">
         <section className="preview-panel" aria-label="WavID preview">
           <div className="chamber-label"><span><i/> {playing ? 'IN MOTION' : 'STILL / FRAME ' + String(visibleFrame).padStart(3, '0')}</span><span>MATERIAL 01</span><button className="icon-button focus-button" onClick={()=>setFocus(!focus)} aria-label={focus?'Exit focus view':'Enter focus view'}><Icon name={focus?'close':'focus'} size={16}/></button></div>

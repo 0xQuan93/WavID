@@ -40,6 +40,13 @@ about 43 MB on the initial Linux installation.
   OxQuan, GodclouD, frameworkfortune and BetterCallZaal.
 - Search or filter the collection; explicitly load the current WaveWarz public
   leaderboards when wanted. A failed refresh leaves the current collection intact.
+- While the tab is visible, a delayed battle strip polls the public live-battle
+  feed at least every 30 seconds. It can show two material-v1 forms from the
+  roster snapshot already loaded, plus the last observation's timer, pools,
+  and factors. The label says the check is delayed. It does not open a
+  websocket, fetch battle artwork, or change material-v1. Sides resolve only
+  from Audius track links. If a winner is recorded, refresh the roster
+  snapshot yourself; the current snapshot stays until that load finishes.
 - The material-v1 form opens paused at frame 88. Play, scrub its eight-second
   timeline, or use focus view. Play follows a 30 fps clock anchored to that
   loop. The picture can skip frames when geometry is slower than the clock;
@@ -105,8 +112,9 @@ original video renderer. See [renderer evidence](src/renderer/README.md).
 
 ## Verification
 
-`npm test` runs core, provenance, artifact, frame-controller and complete-renderer
-regressions without browser automation dependencies. `npm run build` emits the
+`npm test` runs core, provenance, artifact, frame-controller, silent-loop,
+battle-observation and complete-renderer regressions without browser automation
+dependencies. `npm run build` emits the
 standalone site, worker, frozen examples and retained distribution notices.
 
 For real-browser acceptance, start an isolated Chromium debug session on port

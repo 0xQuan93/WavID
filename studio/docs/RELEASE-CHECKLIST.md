@@ -99,3 +99,5 @@ Those boundaries are part of the implementation, not merely this checklist.
   audio none) is still unrendered. The loop has no audio track.
 - Play preview uses an anchored 30 fps clock. The worker may still skip frames
   in the preview. The downloaded loop does not.
+- A delayed dual-WavID battle strip can poll `battles?live=true` in the browser
+  at least every 30 seconds. It observes; it does not rewrite material-v1.
