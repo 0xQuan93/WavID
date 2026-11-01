@@ -30,8 +30,9 @@ npm run preview
 Stop the dev server before previewing, or use `npm run preview -- --port 18991`.
 Serve over HTTP locally or HTTPS when hosted; opening `index.html` directly from
 disk is unsupported. Relative build assets support paths such as `/WavID/`.
-Only `dist/` needs static hosting. There are no external fonts, analytics, remote
-model calls or runtime packages beyond React. Development dependencies occupy
+Only `dist/` needs static hosting. There are no external fonts, analytics, or remote
+model calls. Runtime packages are React, `qrcode` (card QR), and `jsQR` (camera
+fallback). Development dependencies occupy
 about 43 MB on the initial Linux installation.
 
 ## Explore and export
@@ -63,6 +64,15 @@ about 43 MB on the initial Linux installation.
   and unsigned receipt in one ZIP. The receipt hashes the exact PNG bytes and
   records its source, definition, material, renderer version and displayed frame.
   2160 stills keep the 1080 reference stroke weight and dash pitch.
+- **Print WavID card** downloads a portrait PNG of the frame on screen plus a QR
+  code, the portable definition, and a short readme. The default QR is
+  `https://wavewarz.info/wavid/card/<audiusHandle>`. The card page links to
+  `https://audius.co/<handle>`. An artist with no Audius handle gets an empty
+  state and no profile URL. In the card dialog, switch on the hash link and set
+  the base URL to this machine when a phone camera should open the local demo.
+- **Scan a WavID card** opens `#/wavid/scan`. The page uses the camera where the
+  browser allows it (HTTPS or localhost) and accepts a pasted card link
+  otherwise. A recognized code goes to `#/wavid/card/<handle>`.
 - **Download silent loop**, in that same dialog, saves an 8 second H.264 file
   at 1080 or 2160 and 10, 15, or 30 fps. 30 fps visits every material frame.
   15 fps keeps poster frame 88. 10 fps does not. There is no audio track.
@@ -112,7 +122,7 @@ original video renderer. See [renderer evidence](src/renderer/README.md).
 
 ## Verification
 
-`npm test` runs core, provenance, artifact, frame-controller, silent-loop,
+`npm test` runs core, provenance, artifact, card-link, frame-controller, silent-loop,
 battle-observation and complete-renderer regressions without browser automation
 dependencies. `npm run build` emits the
 standalone site, worker, frozen examples and retained distribution notices.

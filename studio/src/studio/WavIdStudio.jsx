@@ -9,6 +9,9 @@ import { encodeSilentLoop } from './encode-loop.mjs';
 import { loadFrozenRoster, fetchPublicRoster } from './roster.mjs';
 import { BattlePanel } from '../battle/BattlePanel.jsx';
 import { chooseRefreshFocus } from '../battle/observe.mjs';
+import { cardFaceForArtist, cardKitReadme } from '../card/face.mjs';
+import { DEFAULT_PUBLIC_BASE_URL, isLocalDemoOrigin } from '../card/payload.mjs';
+import { renderCardPng } from '../card/render-card.mjs';
 
 const shortHash = (value = '') => `${String(value).slice(0, 12)}…${String(value).slice(-8)}`;
 const number = (value) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(value) || 0);
@@ -25,7 +28,7 @@ class RenderBoundary extends Component {
   render() { return this.state.error ? <div className="render-error">This preview could not be drawn. Select another artist or reload the studio.<small>{this.state.error.message}</small></div> : this.props.children; }
 }
 
-export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures/', loadRoster, onDefinition } = {}) {
+export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures/', loadRoster, onDefinition, cardPublicBaseUrl = DEFAULT_PUBLIC_BASE_URL, onOpenScan } = {}) {
   const [roster, setRoster] = useState(initialRoster);
   const [selectedKey, setSelectedKey] = useState(initialRoster?.artists?.find(a=>a.eligibility?.canBirth)?.artistKey || '');
   const [query, setQuery] = useState('');
@@ -42,10 +45,13 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
   const [exportSize, setExportSize] = useState(1080);
   const [loopFps, setLoopFps] = useState(15);
   const [exportingLoop, setExportingLoop] = useState(false);
+  const [cardBaseInput, setCardBaseInput] = useState(cardPublicBaseUrl || DEFAULT_PUBLIC_BASE_URL);
+  const [cardStudioLink, setCardStudioLink] = useState(false);
   const [readyOnly, setReadyOnly] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(0);
   const [now, setNow] = useState(Date.now());
   const dialogRef = useRef(null);
+  const cardDialogRef = useRef(null);
   const rootRef = useRef(null);
   const fetchRef = useRef(null);
   const instanceId = useId();
@@ -77,6 +83,8 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
   const visibleFrame = prepared?.frame ?? 88;
   const evidence = useMemo(() => {if (!definition) return null;try {return describeProvenance(definition,sourceMode);} catch {return null;}}, [definition,sourceMode]);
   const comparison = useMemo(() => {if(!baseline || !definition || baseline.artist.artistKey !== artist?.artistKey) return null;try{return compareCheckpoints(baseline,createPortableExport(artist,checkpoint));}catch{return null;}},[baseline,definition,artist,roster]);
+  const cardSpec = useMemo(() => cardFaceForArtist(artist, { publicBaseUrl: cardBaseInput, studioHash: cardStudioLink }), [artist, cardBaseInput, cardStudioLink]);
+  useEffect(() => { setCardBaseInput(cardPublicBaseUrl || DEFAULT_PUBLIC_BASE_URL); }, [cardPublicBaseUrl]);
   const cooldown = Math.max(0,30-Math.floor((now-lastRefresh)/1000));
   useEffect(()=>{if(!lastRefresh||!cooldown)return;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[lastRefresh,cooldown]);
   useEffect(() => () => { mounted.current = false; exportAbort.current?.abort(); fetchRef.current?.abort(); }, []);
@@ -246,6 +254,36 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       }
     }
   }
+  function toggleStudioLink(event) {
+    const on = event.target.checked;
+    setCardStudioLink(on);
+    const current = cardBaseInput.trim().replace(/\/$/, '');
+    const published = String(cardPublicBaseUrl || DEFAULT_PUBLIC_BASE_URL).trim().replace(/\/$/, '');
+    if (on && (current === DEFAULT_PUBLIC_BASE_URL || current === published)) setCardBaseInput(window.location.origin);
+    else if (!on && isLocalDemoOrigin(cardBaseInput)) setCardBaseInput(cardPublicBaseUrl || DEFAULT_PUBLIC_BASE_URL);
+  }
+
+  async function exportCard() {
+    if (!svgRef.current || !prepared || busy || !cardSpec.ok) return;
+    const capturedFrame = Number(svgRef.current.dataset.frame);
+    setPlaying(false); setFrame(capturedFrame); setError(''); setBusy('Assembling the WavID card…');
+    cardDialogRef.current?.close();
+    try {
+      const portable = createPortableExport(artist, checkpoint);
+      if (svgRef.current.dataset.fingerprint !== portable.definition.props.anatomy.fingerprint) throw new Error('Wait for this artist’s preview to finish preparing.');
+      const png = await renderCardPng({ svg: svgRef.current, spec: cardSpec });
+      const archive = await createZip([
+        { name: 'card.png', data: png },
+        { name: 'card-link.txt', data: `${cardSpec.payload}\n` },
+        { name: 'identity.json', data: JSON.stringify(portable, null, 2) + '\n' },
+        { name: 'READ-ME.txt', data: cardKitReadme(cardSpec) },
+      ]);
+      download(archive, `${slug(nameOf(artist))}-wavid-card.zip`);
+      setNotice(`Card kit downloaded. The QR opens ${cardSpec.payload}`);
+    } catch (err) { setError(err.message || 'Card export failed.'); }
+    finally { setBusy(''); }
+  }
+
   async function copyHash(value) {try{await navigator.clipboard.writeText(value);setNotice('Fingerprint copied.');}catch{setNotice(value);}}
   function rememberCheckpoint(){try{setBaseline(createPortableExport(artist,checkpoint));setNotice('Checkpoint held in this tab. Load fresh history or import another checkpoint for this artist to compare.');}catch(err){setError(err.message);}}
   function togglePlayback(){if(playing){setPlaying(false);setFrame(visibleFrame);}else{setFrame(visibleFrame);setPlaying(true);}}
@@ -262,6 +300,9 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       <div className="panel-heading"><span className="eyebrow">01 / ARTISTS</span><span className="count">{artists.length.toString().padStart(2, '0')}</span></div>
       <h1>History,<br/><em>taking form.</em></h1>
       <p className="intro">An artist’s living signature. Drawn from the history they leave.</p>
+      {onOpenScan
+        ? <button type="button" className="subtle-button scan-entry" onClick={onOpenScan}>Scan a WavID card</button>
+        : <a className="subtle-button scan-entry" href="#/wavid/scan">Scan a WavID card</a>}
       <label className="search"><span aria-hidden="true">⌕</span><input aria-label="Find an artist" placeholder="Find an artist…" value={query} onChange={(event) => setQuery(event.target.value)}/></label>
       <div className="roster-filters"><button aria-pressed={!readyOnly} onClick={()=>setReadyOnly(false)}>All artists <span>{artists.length}</span></button><button aria-pressed={readyOnly} onClick={()=>setReadyOnly(true)}>Ready <span>{artists.filter(a=>a.eligibility?.canBirth).length}</span></button></div>
       <div className="collection-label"><span>{sourceMode === 'live' ? 'WAVEWARZ SNAPSHOT' : sourceMode === 'imported' ? 'IMPORTED CHECKPOINT' : sourceMode === 'provided' ? 'HOST CHECKPOINT' : 'FROZEN COLLECTION'}</span><span>↓</span></div>
@@ -319,7 +360,7 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
             </div>}
 
           </div>
-          <div className="export-panel"><button className="primary-button" disabled={!prepared || !!busy} onClick={()=>exportPng(false)}>Download still <span>↓</span></button><button className="outline-button" disabled={!definition || !!busy} onClick={exportDefinition}>Save definition <span>↧</span></button><button className="kit-button" disabled={!prepared||!!busy} onClick={()=>dialogRef.current.showModal()}><Icon name="kit" size={15}/>Create identity kit<Icon name="arrow" size={12}/></button></div>
+          <div className="export-panel"><button className="primary-button" disabled={!prepared || !!busy} onClick={()=>exportPng(false)}>Download still <span>↓</span></button><button className="outline-button" disabled={!definition || !!busy} onClick={exportDefinition}>Save definition <span>↧</span></button><button className="kit-button" disabled={!prepared||!!busy} onClick={()=>dialogRef.current.showModal()}><Icon name="kit" size={15}/>Create identity kit<Icon name="arrow" size={12}/></button><button type="button" className="card-button" disabled={!!busy} onClick={()=>cardDialogRef.current?.showModal()}>Print WavID card <span>▣</span></button></div>
         </aside>
       </div>
       <div className="history-strip"><div><span className="eyebrow">THE RECORDED MOMENT</span><span className="history-caption">Quick Battle history</span></div><div><strong>{number(stats.indexedSongs)}</strong><span>INDEXED SONGS</span></div><div><strong>{number(stats.battles)}</strong><span>BATTLES</span></div><div><strong>{number(stats.wins)}<em> / {number(stats.losses)}</em></strong><span>WINS / LOSSES</span></div><div><strong>{number(stats.totalVolumeSol ?? stats.volumeSol)}</strong><span>TRADING VOLUME · SOL</span></div></div>
@@ -327,5 +368,26 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       <footer><span>HISTORY LEAVES FORM.</span><span>WavID by OxQuan <b>·</b> Material-v1 / Studio 0.2</span></footer>
     </main>
     <dialog ref={dialogRef} className="export-dialog" aria-labelledby={`export-title-${instanceId}`}><button className="icon-button dialog-close" aria-label="Close export dialog" onClick={()=>dialogRef.current.close()}><Icon name="close"/></button><span className="eyebrow">THE ARTWORK + ITS EVIDENCE</span><h2 id={`export-title-${instanceId}`}>Keep the history<br/><em>with the form.</em></h2><p>An identity kit keeps this exact still, the portable source definition, and an unsigned verification receipt together.</p><div className="kit-contents"><span><Icon name="layers"/>Artwork.png</span><span><Icon name="source"/>Identity.json</span><span><Icon name="check"/>Receipt.json</span></div><label className="size-label">Still resolution<select value={exportSize} onChange={e=>setExportSize(Number(e.target.value))}><option value={1080}>1080 × 1080 · Standard</option><option value={2160}>2160 × 2160 · High resolution</option></select></label><p>The receipt records the image’s SHA-256, source and definition fingerprints, renderer version and frame. It establishes file relationships, not ownership.</p><button className="primary-button" disabled={!prepared||!!busy} onClick={()=>exportPng(true)}>Download identity kit <Icon name="download" size={16}/></button><label className="size-label loop-rate">Silent loop rate<select className="loop-fps" value={loopFps} disabled={!!busy} onChange={(event) => setLoopFps(Number(event.target.value))}><option value={15}>15 fps · 120 frames · includes poster 88</option><option value={30}>30 fps · every material frame</option><option value={10}>10 fps · 80 frames · skips poster 88</option></select></label><p>Eight seconds, no audio. 120 BPM is the visual clock, not a soundtrack. Preview may skip frames; this file does not. It is a browser H.264 recording, not the unrendered production master. Keep this tab visible.</p><button className="outline-button loop-export" disabled={!prepared||!!busy} onClick={exportLoop}>Download silent loop <Icon name="download" size={16}/></button></dialog>
+    <dialog ref={cardDialogRef} className="export-dialog card-dialog" aria-labelledby={`card-title-${instanceId}`}>
+      <button type="button" className="icon-button dialog-close" aria-label="Close card dialog" onClick={() => cardDialogRef.current?.close()}><Icon name="close"/></button>
+      <span className="eyebrow">A CARD THAT OPENS THE ARTIST</span>
+      <h2 id={`card-title-${instanceId}`}>Print the form<br/><em>with a door.</em></h2>
+      <p>The card face is the frame on screen plus a QR code. Scanning it opens the WavID card page, which links to that artist’s Audius profile. It does not change the material-v1 definition.</p>
+      <label className="size-label">Public base URL
+        <input value={cardBaseInput} onChange={(event) => setCardBaseInput(event.target.value)} spellCheck="false" autoCapitalize="none" autoCorrect="off" aria-label="Public base URL for the card link"/>
+      </label>
+      <label className="card-hash">
+        <input type="checkbox" checked={cardStudioLink} onChange={toggleStudioLink}/>
+        <span>Use a hash link for this studio, so a phone camera can open the demo on your network.</span>
+      </label>
+      {cardSpec.ok ? <>
+        <p>The QR encodes</p>
+        <code className="card-url">{cardSpec.payload}</code>
+        <p>The card page links to</p>
+        <code className="card-url">{cardSpec.audiusUrl}</code>
+      </> : <p className="card-block" role="status">{cardSpec.reason} No Audius link was created.</p>}
+      <p>Production cards use <code>https://wavewarz.info/wavid/card/&lt;handle&gt;</code>. A later NFC tag can store that same URL. This download does not write NFC.</p>
+      <button type="button" className="primary-button" disabled={!prepared || !!busy || !cardSpec.ok} onClick={exportCard}>Download card kit <Icon name="download" size={16}/></button>
+    </dialog>
   </div>;
 }

@@ -12,6 +12,9 @@ export default defineConfig({
         ['THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_NOTICES.md'],
         ['src/renderer/REMOTION-LICENSE.md', 'src/renderer/REMOTION-LICENSE.md'],
         ['src/renderer/RANDOM-SOURCES.md', 'src/renderer/RANDOM-SOURCES.md'],
+        ['licenses/qrcode-MIT.txt', 'licenses/qrcode-MIT.txt'],
+        ['licenses/jsqr-Apache-2.0.txt', 'licenses/jsqr-Apache-2.0.txt'],
+        ['licenses/dijkstrajs-MIT.md', 'licenses/dijkstrajs-MIT.md'],
       ]) this.emitFile({ type: 'asset', fileName, source: readFileSync(new URL(source, import.meta.url), 'utf8') });
     },
   }],
