@@ -1,5 +1,5 @@
 import { drawSvgToCanvas } from '../studio/files.mjs';
-import { encodeQrMatrix } from './qr.mjs';
+import { renderWaveLayer } from './wave-code.mjs';
 
 function fitText(ctx, text, maxWidth) {
   const value = String(text || '');
@@ -26,24 +26,15 @@ function wrapText(ctx, text, maxWidth, maxLines) {
   return lines;
 }
 
-function paintQr(ctx, matrix, region) {
-  const quiet = 4;
-  const cells = matrix.size + quiet * 2;
-  const module = region.width / cells;
-  ctx.save();
-  ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(region.x, region.y, region.width, region.height);
-  ctx.fillStyle = '#0b1110';
-  for (let row = 0; row < matrix.size; row += 1) {
-    for (let col = 0; col < matrix.size; col += 1) {
-      if (!matrix.modules[row][col]) continue;
-      const x = region.x + (col + quiet) * module;
-      const y = region.y + (row + quiet) * module;
-      ctx.fillRect(Math.floor(x), Math.floor(y), Math.ceil(module + 0.75), Math.ceil(module + 0.75));
-    }
-  }
-  ctx.restore();
+function paintWave(ctx, region, handle) {
+  const layer = renderWaveLayer(region.width, handle);
+  const surface = document.createElement('canvas');
+  surface.width = layer.width;
+  surface.height = layer.height;
+  const offscreen = surface.getContext('2d');
+  if (!offscreen) throw new Error('Canvas export is unavailable in this browser.');
+  offscreen.putImageData(new ImageData(layer.data, layer.width, layer.height), 0, 0);
+  ctx.drawImage(surface, region.x, region.y);
 }
 
 export function paintCardFace(ctx, spec, artCanvas) {
@@ -71,11 +62,11 @@ export function paintCardFace(ctx, spec, artCanvas) {
   ctx.font = '22px ui-monospace, monospace';
   ctx.fillText(fitText(ctx, spec.handle, regions.title.width), regions.title.x, regions.title.y + 74);
 
-  paintQr(ctx, encodeQrMatrix(spec.payload, { errorCorrectionLevel: spec.errorCorrectionLevel }), regions.qr);
+  paintWave(ctx, regions.art, spec.handle);
 
   ctx.fillStyle = '#8c9d94';
   ctx.font = '18px ui-sans-serif, system-ui, sans-serif';
-  ctx.fillText('Scan to open this artist on Audius', regions.caption.x, regions.caption.y + 22);
+  ctx.fillText('The artwork carries the link', regions.caption.x, regions.caption.y + 22);
   ctx.font = '15px ui-monospace, monospace';
   const lines = wrapText(ctx, spec.payload, regions.caption.width, 2);
   lines.forEach((line, index) => ctx.fillText(line, regions.caption.x, regions.caption.y + 48 + index * 20));

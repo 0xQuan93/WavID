@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { decodeCardPayload } from './payload.mjs';
 import { decodeQrImageData } from './qr.mjs';
+import { frameSize, scanDecision } from './scan-frame.mjs';
+import { decodeWaveImage } from './wave-code.mjs';
 
 async function openQrDetector() {
   const Detector = globalThis.BarcodeDetector;
@@ -38,37 +40,67 @@ async function openCameraStream() {
   throw lastError || new Error('No camera is available.');
 }
 
-async function readFrame(video, canvas, detector) {
+async function loadPhoto(file) {
+  if (typeof createImageBitmap === 'function') return createImageBitmap(file);
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+    const loaded = new Promise((resolve, reject) => {
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('That photo could not be read.'));
+    });
+    image.src = url;
+    return await loaded;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function readCode(image, detectorText) {
+  const wave = decodeWaveImage(image.data, image.width, image.height);
+  let qrText = detectorText || null;
+  if (!wave.ok && !qrText) {
+    try {
+      qrText = decodeQrImageData(image.data, image.width, image.height);
+    } catch {
+      qrText = null;
+    }
+  }
+  return scanDecision({ wave, qrText });
+}
+
+async function readCameraFrame(video, canvas, detector) {
+  let detectorText = null;
   if (detector) {
     try {
       const codes = await detector.detect(video);
-      const value = codes?.find((code) => typeof code?.rawValue === 'string' && code.rawValue)?.rawValue;
-      if (value) return value;
+      detectorText = codes?.find((code) => typeof code?.rawValue === 'string' && code.rawValue)?.rawValue || null;
     } catch {
-      // Fall through to the software decoder when the platform detector misses a frame.
+      // A platform miss still leaves the artwork decoder to read the frame.
     }
   }
-  if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) return null;
-  const scale = Math.min(1, 720 / Math.max(video.videoWidth, video.videoHeight));
-  const width = Math.max(1, Math.round(video.videoWidth * scale));
-  const height = Math.max(1, Math.round(video.videoHeight * scale));
-  canvas.width = width;
-  canvas.height = height;
+  if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+    return detectorText ? scanDecision({ qrText: detectorText }) : null;
+  }
+  const size = frameSize(video.videoWidth, video.videoHeight, 1280);
+  canvas.width = size.width;
+  canvas.height = size.height;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) return null;
-  context.drawImage(video, 0, 0, width, height);
-  const image = context.getImageData(0, 0, width, height);
-  return decodeQrImageData(image.data, width, height);
+  context.imageSmoothingEnabled = false;
+  context.drawImage(video, 0, 0, size.width, size.height);
+  return readCode(context.getImageData(0, 0, size.width, size.height), detectorText);
 }
 
 const PHASE_COPY = {
   starting: 'Starting the camera…',
-  live: 'Point the camera at a WavID card QR.',
-  insecure: 'Camera scanning needs HTTPS or localhost. Paste the card link below, or let the phone’s camera app open the printed QR.',
-  denied: 'Camera permission was blocked. Allow camera access, or paste the card link below.',
-  missing: 'No camera is available. Paste the card link below.',
-  unsupported: 'This browser cannot open a camera. Paste the card link below.',
-  error: 'The camera could not be opened. Paste the card link below.',
+  live: 'Point the camera at the WavID artwork. The image itself carries the link.',
+  insecure: 'Camera scanning needs HTTPS or localhost. Use a photo of the artwork, or paste the card link below.',
+  denied: 'Camera permission was blocked. Allow camera access, use a photo of the artwork, or paste the card link.',
+  missing: 'No camera is available. Use a photo of the artwork, or paste the card link below.',
+  unsupported: 'This browser cannot open a camera. Use a photo of the artwork, or paste the card link below.',
+  error: 'The camera could not be opened. Use a photo of the artwork, or paste the card link below.',
 };
 
 export function CardScan({ onResolve, onStudio }) {
@@ -131,22 +163,19 @@ export function CardScan({ onResolve, onStudio }) {
       let last = 0;
       const loop = async (now) => {
         if (stopped) return;
-        if (!busy && now - last > 180) {
+        if (!busy && now - last > 250) {
           busy = true;
           last = now;
           try {
-            const text = await readFrame(video, canvas, detector);
+            const decoded = await readCameraFrame(video, canvas, detector);
             if (stopped) return;
-            if (text) {
-              const decoded = decodeCardPayload(text);
-              if (decoded.ok) {
-                stopped = true;
-                stream?.getTracks().forEach((track) => track.stop());
-                onResolveRef.current?.(decoded);
-                return;
-              }
-              setMiss(decoded.reason);
+            if (decoded?.ok) {
+              stopped = true;
+              stream?.getTracks().forEach((track) => track.stop());
+              onResolveRef.current?.(decoded);
+              return;
             }
+            if (decoded && decoded.code !== 'not-found') setMiss(decoded.reason);
           } catch {
             // Keep the preview running if one frame cannot be read.
           }
@@ -176,21 +205,50 @@ export function CardScan({ onResolve, onStudio }) {
     onResolveRef.current?.(decoded);
   }
 
+  async function submitPhoto(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    const canvas = canvasRef.current;
+    try {
+      const photo = await loadPhoto(file);
+      const size = frameSize(photo.width, photo.height, 1600);
+      canvas.width = size.width;
+      canvas.height = size.height;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      if (!context) throw new Error('That photo could not be read.');
+      context.imageSmoothingEnabled = false;
+      context.drawImage(photo, 0, 0, size.width, size.height);
+      const decoded = readCode(context.getImageData(0, 0, size.width, size.height));
+      if (!decoded.ok) {
+        setMiss(decoded.reason);
+        return;
+      }
+      onResolveRef.current?.(decoded);
+    } catch (error) {
+      setMiss(error?.message || 'That photo could not be read.');
+    }
+  }
+
   return <div className="wavid-card">
     <header className="card-top">
       <div>
         <span className="eyebrow">WAVID CARD</span>
-        <h1>Scan the card.</h1>
+        <h1>Scan the artwork.</h1>
       </div>
       {onStudio && <button type="button" className="text-button" onClick={onStudio}>Studio</button>}
     </header>
-    <p className="card-lead">The scanner accepts only a WavID card link. It opens that card page here. It does not follow any other address printed in a code.</p>
+    <p className="card-lead">Point the camera at the WavID image. The signal is woven into the artwork. A recognized card opens here. The scanner does not follow any other address.</p>
     <div className="viewfinder">
       <video ref={videoRef} muted playsInline autoPlay />
       {phase !== 'live' && <div className="viewfinder-note"><p>{PHASE_COPY[phase]}</p></div>}
       <canvas ref={canvasRef} className="sr-only" aria-hidden="true" />
     </div>
-    <p className="card-status" role="status">{phase === 'live' ? (miss || PHASE_COPY.live) : PHASE_COPY[phase]}</p>
+    <p className="card-status" role="status">{phase === 'live' ? (miss || PHASE_COPY.live) : (miss || PHASE_COPY[phase])}</p>
+    <label className="card-file">
+      Use a photo of the artwork
+      <input type="file" accept="image/*" capture="environment" onChange={submitPhoto} />
+    </label>
     <form className="card-paste" onSubmit={submitManual}>
       <label htmlFor="wavid-card-link">Or paste a card link</label>
       <input id="wavid-card-link" value={manual} onChange={(event) => setManual(event.target.value)} placeholder="https://wavewarz.info/wavid/card/…" autoCapitalize="off" autoCorrect="off" spellCheck="false" />

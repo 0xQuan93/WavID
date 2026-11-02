@@ -31,8 +31,8 @@ Stop the dev server before previewing, or use `npm run preview -- --port 18991`.
 Serve over HTTP locally or HTTPS when hosted; opening `index.html` directly from
 disk is unsupported. Relative build assets support paths such as `/WavID/`.
 Only `dist/` needs static hosting. There are no external fonts, analytics, or remote
-model calls. Runtime packages are React, `qrcode` (card QR), and `jsQR` (camera
-fallback). Development dependencies occupy
+model calls. Runtime packages are React, plus `qrcode` and `jsQR` as a legacy
+card-QR fallback. The card face itself is drawn by the studio. Development dependencies occupy
 about 43 MB on the initial Linux installation.
 
 ## Explore and export
@@ -64,15 +64,19 @@ about 43 MB on the initial Linux installation.
   and unsigned receipt in one ZIP. The receipt hashes the exact PNG bytes and
   records its source, definition, material, renderer version and displayed frame.
   2160 stills keep the 1080 reference stroke weight and dash pitch.
-- **Print WavID card** downloads a portrait PNG of the frame on screen plus a QR
-  code, the portable definition, and a short readme. The default QR is
+- **Print WavID card** downloads a portrait PNG of the frame on screen with the
+  wave-code ring composited on the artwork, the portable definition, and a short
+  readme. There is no QR square. The ring resolves to
   `https://wavewarz.info/wavid/card/<audiusHandle>`. The card page links to
-  `https://audius.co/<handle>`. An artist with no Audius handle gets an empty
-  state and no profile URL. In the card dialog, switch on the hash link and set
-  the base URL to this machine when a phone camera should open the local demo.
-- **Scan a WavID card** opens `#/wavid/scan`. The page uses the camera where the
-  browser allows it (HTTPS or localhost) and accepts a pasted card link
-  otherwise. A recognized code goes to `#/wavid/card/<handle>`.
+  `https://audius.co/<handle>` and can play that artist’s public Audius songs.
+  An artist with no Audius handle, or a handle longer than 30 characters, gets
+  an empty state and no profile URL. The hash-link option changes only the text
+  URL in the kit.
+- **Scan a WavID card** opens `#/wavid/scan`. Point the camera at the artwork,
+  or choose a photo of it. The page decodes the wave code where the browser
+  allows a camera (HTTPS or localhost) and accepts a pasted card link otherwise.
+  A recognized card goes to `#/wavid/card/<handle>`. An older QR of that same
+  URL still works as a fallback. It is not printed on the card.
 - **Download silent loop**, in that same dialog, saves an 8 second H.264 file
   at 1080 or 2160 and 10, 15, or 30 fps. 30 fps visits every material frame.
   15 fps keeps poster frame 88. 10 fps does not. There is no audio track.

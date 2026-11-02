@@ -19,13 +19,14 @@ generation does not implement that complete protocol.
 | `src/renderer/index.ts` | React/SVG artwork at an explicit frame | Transport, visibility, reduced motion, layout and error handling |
 | `src/studio/WavIdStudio.jsx` | Embeddable studio, with collection, transport, inspector and export controls | Supply navigation, account context and any persistence |
 | `src/battle/` | Delayed live-battle observation and dual material-v1 preview | Keep the poll in the browser. Do not treat it as a checkpoint source |
-| `src/card/` | Card URL contract, QR payload, scan page, and printable card face | Mount `/wavid/scan` and `/wavid/card/:handle`. Supply the public origin encoded on printed cards |
+| `src/card/` | Card URL contract, wave-code layer, scan page, and printable card face | Mount `/wavid/scan` and `/wavid/card/:handle`. Supply the public origin written on the card kit |
 | `src/main.jsx` | Standalone React mount, including hash routes for scan and card | Replace with the host's route mounting |
 | `public/fixtures/` | Four frozen examples and regression inputs | Present as historical observations; retain source attribution |
 
 The core is browser JavaScript with no dependencies. The renderer uses React and
 TypeScript/TSX; use a bundler that handles those files. The card module also
-depends on `qrcode` and `jsQR`. This source handoff is not
+depends on `qrcode` and `jsQR` only for a legacy QR fallback. The card face
+itself uses the first-party `wavid-wave-code/1` layer. This source handoff is not
 an already-published npm library. Review [third-party notices](../THIRD_PARTY_NOTICES.md)
 before incorporating the renderer or the card scanner into another distribution.
 
@@ -54,7 +55,7 @@ export function WavIdPage({ rosterSnapshot }) {
 | `fixtureBaseUrl` | Base URL of the example `index.json` and its fixture files; default `./fixtures/` |
 | `loadRoster` | Async function called for explicit roster refresh; accepts `{ signal }`, returns a normalized snapshot; defaults to the public loader |
 | `onDefinition` | Receives the current browser definition for host observation; does not authorize a profile write |
-| `cardPublicBaseUrl` | Origin encoded in printed card QR codes. Default `https://wavewarz.info`. Production links are `{origin}/wavid/card/{handle}` |
+| `cardPublicBaseUrl` | Origin written in the card kit and caption. Default `https://wavewarz.info`. Production links are `{origin}/wavid/card/{handle}` |
 | `onOpenScan` | Called when the visitor chooses the in-studio scanner. Route this to the host's `/wavid/scan` page |
 
 The frozen collection form can instead provide `artists` and a `checkpoints`
@@ -208,8 +209,9 @@ plan does not call compare by itself and does not rewrite an old snapshot.
 
 ## WavID card and phone scan
 
-`src/card/` is the contract for a physical card. Version `wavid-card/1.0`.
-A printed QR stores one URL. The default production form is:
+`src/card/` is the contract for a physical card. Version `wavid-card/1.0`
+names the URL. The artwork carries a separate card-only layer, `wavid-wave-code/1`.
+There is no QR square on the card face. The default production URL is:
 
 ```text
 https://wavewarz.info/wavid/card/<audiusHandle>
@@ -233,9 +235,10 @@ http://127.0.0.1:18990/#/wavid/card/<audiusHandle>
 http://127.0.0.1:18990/#/wavid/scan
 ```
 
-`parseCardRoute` accepts the path, the hash, or a full http(s) URL. The scanner
-uses that parser and then stays inside the app. It does not navigate to whatever
-origin was printed in an unrelated code. Credentials in a URL are rejected.
+`parseCardRoute` accepts the path, the hash, or a full http(s) URL. The scanner reads the wave code first. It accepts a legacy QR only when the
+artwork does not decode, then uses the same parser and stays inside the app.
+It does not navigate to whatever origin was printed in an unrelated code.
+Credentials in a URL are rejected.
 
 WaveWarz.info should mount the React pages on real paths and pass the public
 origin into the studio. The scanner and the card page are client components.
@@ -288,16 +291,17 @@ API. Do not add an authenticated WaveWarz API for this flow.
 
 `cardPublicBaseUrl` must be an origin: `https://wavewarz.info` in production.
 `http` is accepted only for localhost and private-network hosts so a phone on
-the same LAN can open the studio. The card dialog can switch the printed code
-to the hash form (`{origin}/#/wavid/card/<handle>`) for that demo. Printed
-WaveWarz cards should keep the path form.
+the same LAN can open the text URL. The card dialog can write that URL in hash
+form (`{origin}/#/wavid/card/<handle>`) for the demo kit. The woven signal stores
+the handle, not the origin. Printed WaveWarz cards should keep the path form
+in `card-link.txt`.
 
 From an eligible artist, **Print WavID card** downloads a zip with:
 
 | File | Role |
 | --- | --- |
-| `card.png` | Portrait face: the still on screen, plus the QR |
-| `card-link.txt` | The exact URL encoded in the QR |
+| `card.png` | Portrait face: the still on screen, with the wave-code ring composited on it |
+| `card-link.txt` | The card URL the scan resolves to |
 | `identity.json` | The existing portable material-v1 definition |
 | `READ-ME.txt` | What the scan opens, and what the file does not prove |
 
@@ -307,24 +311,40 @@ The card composite is not a `wavid-browser-artifact/1.0` receipt and does not
 change material-v1 seeds, formulas, or frozen fixture hashes. `identity.json`
 remains the reproducible checkpoint.
 
-The scan page uses `BarcodeDetector` when the browser can read `qr_code`, and
-`jsQR` on camera frames otherwise. Camera capture requires a secure context
-(HTTPS or localhost). Permission, missing-camera, and unsupported-browser
-states stay on the page, with a field to paste a card link. A phone's own
-camera app can open a printed QR without the in-app scanner.
+The scan page points the camera at the artwork. It looks for three circular
+bullseyes, orients the ring, and reads phosphor ticks that encode the Audius
+handle plus 16 Reed-Solomon parity bytes (`wavid-wave-code/1`, at most 30
+characters). The center of the ring stays transparent, so the material-v1 still
+remains the picture. A handle longer than that is refused: no card and no
+Audius URL. The page then opens the card route above. Camera capture requires
+a secure context (HTTPS or localhost). Permission, missing-camera, and
+unsupported-browser states stay on the page. A photo of the artwork can be
+submitted when the camera cannot, and a card link can be pasted. If the
+artwork cannot be read, the page says so. It does not invent a profile.
 
-To try that on a LAN, set the card base URL to the computer's address, choose
-the hash link, and start Vite on the network (`npx vite --host 0.0.0.0 --port 18990`).
-The code then reads `http://192.168.x.x:18990/#/wavid/card/<handle>`. The
-in-app scanner on that `http` LAN address will usually be blocked; the phone's
-camera app can still open the page.
+A phone camera app that only understands QR will not open this card by itself.
+Use **Scan a WavID card** in the studio, or the host's `/wavid/scan` route.
+`BarcodeDetector` and `jsQR` remain a fallback for an older printed QR. They
+are not drawn on the card. Notices are in
+[THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+
+To try the text URL on a LAN, set the card base URL to the computer's address,
+choose the hash link, and start Vite on the network
+(`npx vite --host 0.0.0.0 --port 18990`). The kit then contains
+`http://192.168.x.x:18990/#/wavid/card/<handle>`. The in-app artwork scanner on
+that `http` address will usually be blocked; paste the link or serve the demo
+over HTTPS. A captured frame can also be chosen from the scan page with
+**Use a photo of the artwork**.
+
+The card page lists Audius track permalinks already present on the observation
+(`https://audius.co/<handle>/<slug>`). It asks the public Audius resolve API
+for a stream and a compact embed so the song can play on the page. The primary
+link still opens the Audius profile. If resolve fails, the permalinks remain
+and the page says playback could not start. No WaveWarz API is added, and the
+page does not fetch remote artwork bitmaps.
 
 A later NFC tag can store this same URL as an NDEF URI record. Version 1 does
 not write NFC.
-
-QR modules are built with the `qrcode` package at error correction `Q`. Frames
-are decoded with `jsQR` when the platform detector is unavailable. Both notices
-are in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
 ## Integrity and artist control
 
@@ -371,6 +391,7 @@ write endpoint or account flow is supplied by this studio.
 | Live battle observation | `wavewarz-live-battle-observation/0` |
 | Battle overlay scaffold | `wavewarz-battle-overlay-v0` |
 | WavID card payload | `wavid-card/1.0` |
+| WavID wave code | `wavid-wave-code/1` |
 | Browser definition | `wavid-browser-definition/1.0.0` |
 | Portable envelope | `wavid-browser-export/1.0` |
 | Genome | `wavid-artist-genome/1.0.0` |
