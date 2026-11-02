@@ -72,7 +72,9 @@ represent an example fixture as artist endorsement of the browser studio.
 
 ## QR code libraries
 
-Printed WavID cards encode their link with [`qrcode`](https://github.com/soldair/node-qrcode)
+The current card face does not print a QR square. The scannable ring is
+first-party `wavid-wave-code/1`. A legacy QR of the same card URL can still be
+decoded. That encoder is [`qrcode`](https://github.com/soldair/node-qrcode)
 1.5.4 (MIT). Copyright (c) 2012 Ryan Day. The encoder incorporates QRCode for
 JavaScript, copyright (c) 2009 Kazuhiko Arase, also under the MIT license.
 The MIT text is in [licenses/qrcode-MIT.txt](licenses/qrcode-MIT.txt).
@@ -80,8 +82,8 @@ The MIT text is in [licenses/qrcode-MIT.txt](licenses/qrcode-MIT.txt).
 Segment optimization inside that encoder uses `dijkstrajs` 1.0.3, MIT,
 copyright (c) 2008. Its notice is in [licenses/dijkstrajs-MIT.md](licenses/dijkstrajs-MIT.md).
 
-When the browser has no `BarcodeDetector` QR reader, camera frames are decoded
-with [`jsQR`](https://github.com/cozmo/jsQR) 1.4.0 by Cosmo Wolfe and
+When the artwork wave code is not found, camera frames can still be checked for
+a legacy QR with [`jsQR`](https://github.com/cozmo/jsQR) 1.4.0 by Cosmo Wolfe and
 contributors, under the Apache License 2.0. The license is reproduced in
 [licenses/jsqr-Apache-2.0.txt](licenses/jsqr-Apache-2.0.txt). The studio uses
 the library unmodified.

@@ -101,8 +101,9 @@ Those boundaries are part of the implementation, not merely this checklist.
   in the preview. The downloaded loop does not.
 - A delayed dual-WavID battle strip can poll `battles?live=true` in the browser
   at least every 30 seconds. It observes; it does not rewrite material-v1.
-- An eligible artist can export a WavID card. The QR encodes
-  `wavid-card/1.0` (`https://wavewarz.info/wavid/card/<handle>` by default).
-  The card page links to `https://audius.co/<handle>` only when that handle is
-  present. The export reuses the portable definition and does not change
-  material-v1.
+- An eligible artist can export a WavID card. The artwork carries
+  `wavid-wave-code/1` and resolves to `wavid-card/1.0`
+  (`https://wavewarz.info/wavid/card/<handle>` by default). The card face has
+  no QR square. The card page links to `https://audius.co/<handle>` only when
+  that handle is present, and can play public Audius songs from the observation.
+  The export reuses the portable definition and does not change material-v1.
