@@ -279,7 +279,7 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
         { name: 'READ-ME.txt', data: cardKitReadme(cardSpec) },
       ]);
       download(archive, `${slug(nameOf(artist))}-wavid-card.zip`);
-      setNotice(`Card kit downloaded. The QR opens ${cardSpec.payload}`);
+      setNotice(`Card kit downloaded. The artwork opens ${cardSpec.payload}`);
     } catch (err) { setError(err.message || 'Card export failed.'); }
     finally { setBusy(''); }
   }
@@ -372,16 +372,16 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       <button type="button" className="icon-button dialog-close" aria-label="Close card dialog" onClick={() => cardDialogRef.current?.close()}><Icon name="close"/></button>
       <span className="eyebrow">A CARD THAT OPENS THE ARTIST</span>
       <h2 id={`card-title-${instanceId}`}>Print the form<br/><em>with a door.</em></h2>
-      <p>The card face is the frame on screen plus a QR code. Scanning it opens the WavID card page, which links to that artist’s Audius profile. It does not change the material-v1 definition.</p>
+      <p>The WavID image is the scannable surface. The scanner reads a signal woven into the artwork and opens this card page. There is no QR square on the card. The link below is the same door, written out for typing or a later NFC tag. It does not change the material-v1 definition.</p>
       <label className="size-label">Public base URL
         <input value={cardBaseInput} onChange={(event) => setCardBaseInput(event.target.value)} spellCheck="false" autoCapitalize="none" autoCorrect="off" aria-label="Public base URL for the card link"/>
       </label>
       <label className="card-hash">
         <input type="checkbox" checked={cardStudioLink} onChange={toggleStudioLink}/>
-        <span>Use a hash link for this studio, so a phone camera can open the demo on your network.</span>
+        <span>Write the studio hash form of that link, so the text URL opens this demo on your network.</span>
       </label>
       {cardSpec.ok ? <>
-        <p>The QR encodes</p>
+        <p>The artwork resolves to</p>
         <code className="card-url">{cardSpec.payload}</code>
         <p>The card page links to</p>
         <code className="card-url">{cardSpec.audiusUrl}</code>

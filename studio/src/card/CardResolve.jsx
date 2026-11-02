@@ -4,6 +4,7 @@ import { WavIdRenderer, usePreparedWavIdFrame } from '../renderer';
 import { loadFrozenRoster } from '../studio/roster.mjs';
 import { CARD_POSTER_FRAME } from './face.mjs';
 import { handleFromArtist, resolveAudiusProfile } from './payload.mjs';
+import { resolveAudiusTrack, tracksForArtist } from './playback.mjs';
 
 class PreviewBoundary extends Component {
   state = { error: null };
@@ -34,6 +35,47 @@ function CardArt({ artist, roster }) {
       ? <PreviewBoundary><WavIdRenderer props={prepared.props} frame={prepared.frame} preparedFrame={prepared} title={`${artist.displayName} — WavID card`} /></PreviewBoundary>
       : <p className="card-empty">Preparing the WavID preview…</p>}
   </div>;
+}
+
+function CardPlayer({ artist, handle }) {
+  const tracks = useMemo(() => tracksForArtist(artist, handle), [artist, handle]);
+  const [players, setPlayers] = useState([]);
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (!tracks.length) return undefined;
+    let disposed = false;
+    setNote('');
+    setPlayers([]);
+    Promise.all(tracks.slice(0, 3).map(async (track) => {
+      try {
+        const playback = await resolveAudiusTrack(track.permalink);
+        return playback ? { ...track, ...playback, title: playback.title || track.title } : null;
+      } catch {
+        return null;
+      }
+    })).then((resolved) => {
+      if (disposed) return;
+      const playable = resolved.filter(Boolean);
+      setPlayers(playable);
+      if (!playable.length) setNote('These songs could not start in the page. The links still open them on Audius.');
+    });
+    return () => { disposed = true; };
+  }, [tracks]);
+
+  if (!tracks.length) return null;
+  return <section className="card-player" aria-label="Play on this page">
+    <h2>Play</h2>
+    {players.map((track) => <article key={track.permalink}>
+      <h3>{track.title}</h3>
+      {track.streamUrl && <audio controls preload="none" src={track.streamUrl} />}
+      {track.embedUrl && <iframe title={`${track.title} on Audius`} src={track.embedUrl} allow="encrypted-media" loading="lazy" />}
+    </article>)}
+    <ul className="card-tracks">
+      {tracks.map((track) => <li key={track.permalink}><a href={track.permalink}>{track.title}</a></li>)}
+    </ul>
+    {note && <p>{note}</p>}
+  </section>;
 }
 
 export function CardResolve({
@@ -108,6 +150,7 @@ export function CardResolve({
       </div>}
       <p className="card-handle">{resolved.handle}</p>
       <p className="card-key">{resolved.artistKey}</p>
+      <CardPlayer artist={matched} handle={resolved.handle} />
       <a className="primary-button card-cta" href={resolved.audiusUrl}>Open Audius profile</a>
       <p className="card-target">{resolved.audiusUrl}</p>
       <p className="card-note">Public observation. This page does not prove control of the artist, and it does not invent a profile when the handle is missing.</p>

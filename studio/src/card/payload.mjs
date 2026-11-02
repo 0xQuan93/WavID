@@ -1,7 +1,8 @@
 // WavID card payload, wavid-card/1.0.
-// A printed QR stores {origin}/wavid/card/{audiusHandle}.
+// After a scan, the app opens {origin}/wavid/card/{audiusHandle}.
 // The static studio reads the same path from the hash: {origin}/#/wavid/card/{handle}.
 // The card page links to https://audius.co/{handle}. A later NFC tag can store this same URL.
+// The printed card face stores the handle in the artwork (wavid-wave-code/1), not in a QR square.
 
 export const CARD_CONTRACT = 'wavid-card/1.0';
 export const DEFAULT_PUBLIC_BASE_URL = 'https://wavewarz.info';
