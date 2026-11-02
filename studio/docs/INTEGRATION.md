@@ -19,17 +19,19 @@ generation does not implement that complete protocol.
 | `src/renderer/index.ts` | React/SVG artwork at an explicit frame | Transport, visibility, reduced motion, layout and error handling |
 | `src/studio/WavIdStudio.jsx` | Embeddable studio, with collection, transport, inspector and export controls | Supply navigation, account context and any persistence |
 | `src/battle/` | Delayed live-battle observation and dual material-v1 preview | Keep the poll in the browser. Do not treat it as a checkpoint source |
-| `src/main.jsx` | Standalone React mount | Replace with the host's route mounting |
+| `src/card/` | Card URL contract, QR payload, scan page, and printable card face | Mount `/wavid/scan` and `/wavid/card/:handle`. Supply the public origin encoded on printed cards |
+| `src/main.jsx` | Standalone React mount, including hash routes for scan and card | Replace with the host's route mounting |
 | `public/fixtures/` | Four frozen examples and regression inputs | Present as historical observations; retain source attribution |
 
 The core is browser JavaScript with no dependencies. The renderer uses React and
-TypeScript/TSX; use a bundler that handles those files. This source handoff is not
+TypeScript/TSX; use a bundler that handles those files. The card module also
+depends on `qrcode` and `jsQR`. This source handoff is not
 an already-published npm library. Review [third-party notices](../THIRD_PARTY_NOTICES.md)
-before incorporating the renderer into another distribution.
+before incorporating the renderer or the card scanner into another distribution.
 
 ## Embed the complete studio
 
-Copy `src/core/`, `src/renderer/`, `src/studio/`, `src/battle/` and `src/styles.css`
+Copy `src/core/`, `src/renderer/`, `src/studio/`, `src/battle/`, `src/card/` and `src/styles.css`
 together,
 retaining their notices. The component stylesheet is scoped to `.wavid-studio`;
 the standalone body's reset is separate in `src/standalone.css` and is not needed
@@ -52,6 +54,8 @@ export function WavIdPage({ rosterSnapshot }) {
 | `fixtureBaseUrl` | Base URL of the example `index.json` and its fixture files; default `./fixtures/` |
 | `loadRoster` | Async function called for explicit roster refresh; accepts `{ signal }`, returns a normalized snapshot; defaults to the public loader |
 | `onDefinition` | Receives the current browser definition for host observation; does not authorize a profile write |
+| `cardPublicBaseUrl` | Origin encoded in printed card QR codes. Default `https://wavewarz.info`. Production links are `{origin}/wavid/card/{handle}` |
+| `onOpenScan` | Called when the visitor chooses the in-studio scanner. Route this to the host's `/wavid/scan` page |
 
 The frozen collection form can instead provide `artists` and a `checkpoints`
 record keyed by `artistKey`, with each value holding that artist's `checkedAt`,
@@ -202,6 +206,126 @@ to an Audius identity that can generate, the refresh holds a portable export
 first so History can run `compareCheckpoints` for that same artist key. The
 plan does not call compare by itself and does not rewrite an old snapshot.
 
+## WavID card and phone scan
+
+`src/card/` is the contract for a physical card. Version `wavid-card/1.0`.
+A printed QR stores one URL. The default production form is:
+
+```text
+https://wavewarz.info/wavid/card/<audiusHandle>
+```
+
+`<audiusHandle>` is the handle already stored on the artist (`identity.audiusHandle`),
+not a display name and not a wallet. The artist key remains
+`wavewarz:audius:<handle>` with the handle lowercased using `en-US`, the same
+rule as roster grouping and live-battle observation. Opening the URL shows a
+card page: the material-v1 still when that artist is eligible in the loaded
+observation, and a primary link to `https://audius.co/<handle>`. If no handle
+is present, or the artist key does not match the handle, the page and the card
+export stop. They do not invent an Audius URL.
+
+The static studio cannot use that path directly. Its build uses relative asset
+URLs, so deep paths would request assets from the wrong folder. The standalone
+app therefore reads the same path from the hash:
+
+```text
+http://127.0.0.1:18990/#/wavid/card/<audiusHandle>
+http://127.0.0.1:18990/#/wavid/scan
+```
+
+`parseCardRoute` accepts the path, the hash, or a full http(s) URL. The scanner
+uses that parser and then stays inside the app. It does not navigate to whatever
+origin was printed in an unrelated code. Credentials in a URL are rejected.
+
+WaveWarz.info should mount the React pages on real paths and pass the public
+origin into the studio. The scanner and the card page are client components.
+Give them the same stylesheet (`src/styles.css`); card screens are scoped to
+`.wavid-card`.
+
+```jsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { CardScan } from './wavid/card/CardScan';
+import { CardResolve } from './wavid/card/CardResolve';
+import { WavIdStudio } from './wavid/studio/WavIdStudio';
+import './wavid/styles.css';
+
+export function ScanRoute() {
+  const router = useRouter();
+  return <CardScan onResolve={(card) => router.push(card.cardPath)} />;
+}
+
+export function CardRoute({ handle, artist }) {
+  const router = useRouter();
+  return (
+    <CardResolve
+      handle={handle}
+      artist={artist}
+      onScan={() => router.push('/wavid/scan')}
+    />
+  );
+}
+
+export function StudioRoute({ rosterSnapshot }) {
+  const router = useRouter();
+  return (
+    <WavIdStudio
+      initialRoster={rosterSnapshot}
+      cardPublicBaseUrl="https://wavewarz.info"
+      onOpenScan={() => router.push('/wavid/scan')}
+    />
+  );
+}
+```
+
+`card.cardPath` is `/wavid/card/<encoded handle>`. `CardResolve` links to Audius
+only after `resolveAudiusProfile` accepts the handle. Pass `artist` when the
+host already has the public observation; otherwise the page still offers the
+profile link and says that no WavID preview is loaded. The standalone demo
+loads the frozen fixtures for the four example artists and does not call a new
+API. Do not add an authenticated WaveWarz API for this flow.
+
+`cardPublicBaseUrl` must be an origin: `https://wavewarz.info` in production.
+`http` is accepted only for localhost and private-network hosts so a phone on
+the same LAN can open the studio. The card dialog can switch the printed code
+to the hash form (`{origin}/#/wavid/card/<handle>`) for that demo. Printed
+WaveWarz cards should keep the path form.
+
+From an eligible artist, **Print WavID card** downloads a zip with:
+
+| File | Role |
+| --- | --- |
+| `card.png` | Portrait face: the still on screen, plus the QR |
+| `card-link.txt` | The exact URL encoded in the QR |
+| `identity.json` | The existing portable material-v1 definition |
+| `READ-ME.txt` | What the scan opens, and what the file does not prove |
+
+The still is the frame already prepared in the studio, rasterized with the
+existing PNG path. The zip is the same store-format writer as the identity kit.
+The card composite is not a `wavid-browser-artifact/1.0` receipt and does not
+change material-v1 seeds, formulas, or frozen fixture hashes. `identity.json`
+remains the reproducible checkpoint.
+
+The scan page uses `BarcodeDetector` when the browser can read `qr_code`, and
+`jsQR` on camera frames otherwise. Camera capture requires a secure context
+(HTTPS or localhost). Permission, missing-camera, and unsupported-browser
+states stay on the page, with a field to paste a card link. A phone's own
+camera app can open a printed QR without the in-app scanner.
+
+To try that on a LAN, set the card base URL to the computer's address, choose
+the hash link, and start Vite on the network (`npx vite --host 0.0.0.0 --port 18990`).
+The code then reads `http://192.168.x.x:18990/#/wavid/card/<handle>`. The
+in-app scanner on that `http` LAN address will usually be blocked; the phone's
+camera app can still open the page.
+
+A later NFC tag can store this same URL as an NDEF URI record. Version 1 does
+not write NFC.
+
+QR modules are built with the `qrcode` package at error correction `Q`. Frames
+are decoded with `jsQR` when the platform detector is unavailable. Both notices
+are in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+
 ## Integrity and artist control
 
 `createPortableExport(artist, checkpoint)` includes the source, generated
@@ -246,6 +370,7 @@ write endpoint or account flow is supplied by this studio.
 | Visual mapping | `wavewarz-roster-to-material-v1/1.0.0` |
 | Live battle observation | `wavewarz-live-battle-observation/0` |
 | Battle overlay scaffold | `wavewarz-battle-overlay-v0` |
+| WavID card payload | `wavid-card/1.0` |
 | Browser definition | `wavid-browser-definition/1.0.0` |
 | Portable envelope | `wavid-browser-export/1.0` |
 | Genome | `wavid-artist-genome/1.0.0` |

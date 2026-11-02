@@ -70,6 +70,22 @@ Public accessibility is not a license to the underlying songs or artwork.
 Preserve the historical timestamps and unverified-control status, and do not
 represent an example fixture as artist endorsement of the browser studio.
 
+## QR code libraries
+
+Printed WavID cards encode their link with [`qrcode`](https://github.com/soldair/node-qrcode)
+1.5.4 (MIT). Copyright (c) 2012 Ryan Day. The encoder incorporates QRCode for
+JavaScript, copyright (c) 2009 Kazuhiko Arase, also under the MIT license.
+The MIT text is in [licenses/qrcode-MIT.txt](licenses/qrcode-MIT.txt).
+
+Segment optimization inside that encoder uses `dijkstrajs` 1.0.3, MIT,
+copyright (c) 2008. Its notice is in [licenses/dijkstrajs-MIT.md](licenses/dijkstrajs-MIT.md).
+
+When the browser has no `BarcodeDetector` QR reader, camera frames are decoded
+with [`jsQR`](https://github.com/cozmo/jsQR) 1.4.0 by Cosmo Wolfe and
+contributors, under the Apache License 2.0. The license is reproduced in
+[licenses/jsqr-Apache-2.0.txt](licenses/jsqr-Apache-2.0.txt). The studio uses
+the library unmodified.
+
 ## Development tooling
 
 `package-lock.json` pins Vite and its dependency tree. These build tools retain

@@ -11,6 +11,6 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --test tests/*.test.mjs"
   },
-  "dependencies": { "react": "19.2.5", "react-dom": "19.2.5" },
+  "dependencies": { "jsqr": "1.4.0", "qrcode": "1.5.4", "react": "19.2.5", "react-dom": "19.2.5" },
   "devDependencies": { "vite": "8.2.4" }
 }

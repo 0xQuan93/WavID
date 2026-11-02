@@ -146,3 +146,38 @@
 .wavid-studio .battle-result p { margin: 0; font-size: 12px; line-height: 1.6; color: #c5d6c9; }
 .wavid-studio .battle-result .outline-button { width: auto; margin-top: 8px; padding: 10px 14px; }
 @media (max-width: 700px) { .wavid-studio .battle-duel { grid-template-columns: 1fr; } }
+.wavid-studio .scan-entry { margin: -10px 0 16px; color: var(--green); font-size: 11px; }
+.wavid-studio .card-button { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 8px; padding: 12px 16px; border: 1px solid #3b4b40; border-radius: 4px; background: transparent; font-size: 11px; }
+.wavid-studio .card-dialog input:not([type="checkbox"]) { width: 100%; padding: 12px; font: 12px var(--mono); color: #e0eee4; background: #15251b; border: 1px solid #4a6953; border-radius: 4px; }
+.wavid-studio .card-hash { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; font-size: 12px; line-height: 1.5; color: #c5d9cb; }
+.wavid-studio .card-hash input { margin-top: 3px; }
+.wavid-studio .card-url { display: block; margin: 0 0 12px; overflow-wrap: anywhere; font: 11px/1.6 var(--mono); color: #d5efe0; }
+.wavid-studio .card-block { color: #edbcae; }
+.wavid-card { --muted: #a1b0a7; --line: #2b3930; --green: #bcf1cf; --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace; min-height: 100vh; box-sizing: border-box; margin: 0 auto; max-width: 560px; padding: 22px 18px 48px; color: #d8e2d9; background: radial-gradient(ellipse at 70% 0, #14241b 0, transparent 42%), #0b1110; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: dark; }
+.wavid-card * { box-sizing: border-box; }
+.wavid-card button, .wavid-card input, .wavid-card a { font: inherit; color: inherit; }
+.wavid-card button { cursor: pointer; }
+.wavid-card a { text-decoration: none; }
+.wavid-card .eyebrow { font: 9px var(--mono); letter-spacing: 1.7px; color: var(--muted); }
+.wavid-card h1 { margin: 10px 0 0; font-size: 34px; font-weight: 400; letter-spacing: -1.2px; line-height: 1.15; overflow-wrap: anywhere; }
+.wavid-card .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.wavid-card .card-nav, .wavid-card .text-button { display: inline-flex; gap: 8px; }
+.wavid-card .text-button { border: 1px solid #3b4b40; background: transparent; border-radius: 4px; padding: 8px 10px; font-size: 11px; }
+.wavid-card .card-lead, .wavid-card .card-note, .wavid-card .card-status { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.wavid-card .card-lead { margin: 18px 0; }
+.wavid-card .viewfinder { position: relative; width: 100%; aspect-ratio: 3 / 4; max-height: 68vh; overflow: hidden; border-radius: 12px; background: #050b07; border: 1px solid var(--line); }
+.wavid-card .viewfinder video { width: 100%; height: 100%; object-fit: cover; display: block; background: #050b07; }
+.wavid-card .viewfinder-note { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: #c5d7cb; background: #07110ccc; }
+.wavid-card .viewfinder-note p { margin: 0; font-size: 14px; line-height: 1.6; }
+.wavid-card .card-paste { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.wavid-card .card-paste label { font-size: 12px; color: #c5d9cb; }
+.wavid-card .card-paste input { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #4a6953; background: #15251b; color: #e0eee4; font: 13px var(--mono); }
+.wavid-card .primary-button, .wavid-card .card-cta { display: flex; align-items: center; justify-content: center; min-height: 48px; margin-top: 16px; padding: 14px 16px; border-radius: 4px; border: 1px solid var(--green); background: var(--green); color: #182e1e; font-weight: 600; font-size: 15px; text-align: center; }
+.wavid-card .card-art { width: min(100%, 420px); margin: 22px auto 8px; aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: #050b07; border: 1px solid #34413a; display: grid; place-items: center; }
+.wavid-card .card-art svg { width: 100%; height: 100%; display: block; }
+.wavid-card .card-empty { margin: 22px 0; padding: 28px 16px; text-align: center; border: 1px dashed #3a5242; border-radius: 8px; color: #c5d7cb; font-size: 14px; line-height: 1.6; }
+.wavid-card .card-empty p { margin: 0 0 8px; }
+.wavid-card .card-handle { margin: 18px 0 0; font-size: 18px; }
+.wavid-card .card-key, .wavid-card .card-target { margin: 6px 0 0; overflow-wrap: anywhere; font: 12px/1.6 var(--mono); color: #9fb5a6; }
+.wavid-card .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 420px) { .wavid-card h1 { font-size: 30px; } .wavid-card { padding: 18px 14px 36px; } }
