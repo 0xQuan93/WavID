@@ -190,7 +190,30 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       const filename=`${slug(nameOf(artist))}-wavid-frame-${capturedFrame}.png`;
       if(kit) {
         const receipt=await createArtifactReceipt({png,portable,frame:capturedFrame,size:exportSize,filename});
-        const archive=await createZip([{name:filename,data:png},{name:'identity.json',data:JSON.stringify(portable,null,2)+'\n'},{name:'receipt.json',data:JSON.stringify(receipt,null,2)+'\n'},{name:'READ-ME.txt',data:'WavID identity kit\n\nThe artwork is bound to identity.json by receipt.json. These unsigned SHA-256 commitments establish file integrity, not artist ownership or platform approval. Import identity.json into WavID Studio to reproduce this checkpoint. Browser rasterization can differ by device; the receipt hashes this exact PNG.\n\nWavID by OxQuan — https://github.com/0xQuan93/WavID\n'}]);
+        const readme = [
+          'WavID identity kit',
+          '',
+          'The square artwork is bound to identity.json by receipt.json. These unsigned SHA-256 commitments establish file integrity, not artist ownership or platform approval. Import identity.json into WavID Studio to reproduce this checkpoint. Browser rasterization can differ by device; the receipt hashes this exact PNG.',
+          '',
+        ];
+        const entries = [
+          {name:filename,data:png},
+          {name:'identity.json',data:JSON.stringify(portable,null,2)+'\n'},
+          {name:'receipt.json',data:JSON.stringify(receipt,null,2)+'\n'},
+        ];
+        if (cardSpec.ok) {
+          const cardPng = await renderCardPng({ svg: svgRef.current, spec: cardSpec });
+          entries.push({ name: 'card.png', data: cardPng });
+          readme.push(
+            'card.png is the printable WavID card. The artwork weaves wavid-wave-code/1 for this artist’s Audius handle. There is no QR square.',
+            cardSpec.payload,
+            cardSpec.audiusUrl,
+            '',
+          );
+        }
+        readme.push('WavID by OxQuan — https://github.com/0xQuan93/WavID', '');
+        entries.push({ name: 'READ-ME.txt', data: readme.join('\n') });
+        const archive=await createZip(entries);
         download(archive,`${slug(nameOf(artist))}-wavid-kit.zip`);
         setNotice('Identity kit downloaded: artwork, source definition and exact-artifact receipt.');
       } else {download(png,filename);setNotice(`${exportSize} × ${exportSize} still downloaded from the displayed frame.`);}
@@ -367,7 +390,7 @@ export function WavIdStudio({ initialRoster = null, fixtureBaseUrl = './fixtures
       <p className="coverage-note">{sourceMode === 'imported' ? 'Imported checkpoint · supplied history has not been authenticated with WaveWarz.' : 'Leaderboard-derived checkpoint · source queries cover up to 500 artist rows and 500 songs ranked by volume. Counts describe those records, not a complete catalog or roster.'}</p>
       <footer><span>HISTORY LEAVES FORM.</span><span>WavID by OxQuan <b>·</b> Material-v1 / Studio 0.2</span></footer>
     </main>
-    <dialog ref={dialogRef} className="export-dialog" aria-labelledby={`export-title-${instanceId}`}><button className="icon-button dialog-close" aria-label="Close export dialog" onClick={()=>dialogRef.current.close()}><Icon name="close"/></button><span className="eyebrow">THE ARTWORK + ITS EVIDENCE</span><h2 id={`export-title-${instanceId}`}>Keep the history<br/><em>with the form.</em></h2><p>An identity kit keeps this exact still, the portable source definition, and an unsigned verification receipt together.</p><div className="kit-contents"><span><Icon name="layers"/>Artwork.png</span><span><Icon name="source"/>Identity.json</span><span><Icon name="check"/>Receipt.json</span></div><label className="size-label">Still resolution<select value={exportSize} onChange={e=>setExportSize(Number(e.target.value))}><option value={1080}>1080 × 1080 · Standard</option><option value={2160}>2160 × 2160 · High resolution</option></select></label><p>The receipt records the image’s SHA-256, source and definition fingerprints, renderer version and frame. It establishes file relationships, not ownership.</p><button className="primary-button" disabled={!prepared||!!busy} onClick={()=>exportPng(true)}>Download identity kit <Icon name="download" size={16}/></button><label className="size-label loop-rate">Silent loop rate<select className="loop-fps" value={loopFps} disabled={!!busy} onChange={(event) => setLoopFps(Number(event.target.value))}><option value={15}>15 fps · 120 frames · includes poster 88</option><option value={30}>30 fps · every material frame</option><option value={10}>10 fps · 80 frames · skips poster 88</option></select></label><p>Eight seconds, no audio. 120 BPM is the visual clock, not a soundtrack. Preview may skip frames; this file does not. It is a browser H.264 recording, not the unrendered production master. Keep this tab visible.</p><button className="outline-button loop-export" disabled={!prepared||!!busy} onClick={exportLoop}>Download silent loop <Icon name="download" size={16}/></button></dialog>
+    <dialog ref={dialogRef} className="export-dialog" aria-labelledby={`export-title-${instanceId}`}><button className="icon-button dialog-close" aria-label="Close export dialog" onClick={()=>dialogRef.current.close()}><Icon name="close"/></button><span className="eyebrow">THE ARTWORK + ITS EVIDENCE</span><h2 id={`export-title-${instanceId}`}>Keep the history<br/><em>with the form.</em></h2><p>An identity kit keeps this exact still, the portable source definition, and an unsigned verification receipt together. When this artist can birth a card, the kit also includes the printable face with the wave-code woven into the artwork.</p><div className="kit-contents"><span><Icon name="layers"/>Artwork.png</span><span><Icon name="source"/>Identity.json</span><span><Icon name="check"/>Receipt.json</span>{cardSpec.ok && <span><Icon name="layers"/>Card.png</span>}</div><label className="size-label">Still resolution<select value={exportSize} onChange={e=>setExportSize(Number(e.target.value))}><option value={1080}>1080 × 1080 · Standard</option><option value={2160}>2160 × 2160 · High resolution</option></select></label><p>The receipt records the image’s SHA-256, source and definition fingerprints, renderer version and frame. It establishes file relationships, not ownership.</p><button className="primary-button" disabled={!prepared||!!busy} onClick={()=>exportPng(true)}>Download identity kit <Icon name="download" size={16}/></button><label className="size-label loop-rate">Silent loop rate<select className="loop-fps" value={loopFps} disabled={!!busy} onChange={(event) => setLoopFps(Number(event.target.value))}><option value={15}>15 fps · 120 frames · includes poster 88</option><option value={30}>30 fps · every material frame</option><option value={10}>10 fps · 80 frames · skips poster 88</option></select></label><p>Eight seconds, no audio. 120 BPM is the visual clock, not a soundtrack. Preview may skip frames; this file does not. It is a browser H.264 recording, not the unrendered production master. Keep this tab visible.</p><button className="outline-button loop-export" disabled={!prepared||!!busy} onClick={exportLoop}>Download silent loop <Icon name="download" size={16}/></button></dialog>
     <dialog ref={cardDialogRef} className="export-dialog card-dialog" aria-labelledby={`card-title-${instanceId}`}>
       <button type="button" className="icon-button dialog-close" aria-label="Close card dialog" onClick={() => cardDialogRef.current?.close()}><Icon name="close"/></button>
       <span className="eyebrow">A CARD THAT OPENS THE ARTIST</span>

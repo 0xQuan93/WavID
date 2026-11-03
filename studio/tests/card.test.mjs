@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { artistKeyFromMusicLink } from '../src/battle/observe.mjs';
 import { normalizeRoster } from '../src/core/index.mjs';
 import { cardFaceForArtist, cardFaceLayout, cardKitReadme } from '../src/card/face.mjs';
+import { resolveCardArtist, shouldFetchPublicRoster } from '../src/card/match.mjs';
+import { cardWaveLayer } from '../src/card/render-card.mjs';
 import { playbackFromResolve, tracksForArtist } from '../src/card/playback.mjs';
 import {
   CARD_CONTRACT,
@@ -435,6 +437,132 @@ test('a handle too long for the ring is refused without an Audius URL', async ()
   assert.equal(JSON.stringify(face).includes('audius.co'), false);
   assert.throws(() => renderWaveLayer(240, handle), /cannot be woven/);
   assert.equal(resolveAudiusProfile({ handle: 'a'.repeat(40) }).ok, true);
+});
+
+function rosterForHandle(handle, displayName = handle) {
+  const song = {
+    songTitle: 'Signal',
+    artistName: displayName,
+    musicLink: `https://audius.co/${handle}/signal`,
+    genre: 'Unspecified',
+    battles: 2,
+    wins: 1,
+    losses: 1,
+    winRate: 50,
+    totalVolumeSol: 1,
+    totalUniqueTraders: 1,
+    lastPlayed: '2026-09-13T00:00:00.000Z',
+  };
+  return normalizeRoster({}, { songs: [song] }, '2026-09-13T00:00:00.000Z');
+}
+
+test('a supplied roster resolves artists outside the frozen fixtures', async () => {
+  const ox = await fixtureArtist('oxquan.json');
+  const storm = rosterForHandle('stormbourne', 'Stormbourne').artists[0];
+  assert.equal(storm.artistKey, 'wavewarz:audius:stormbourne');
+  assert.equal(storm.eligibility.canBirth, true);
+
+  const fromRoster = resolveCardArtist({ handle: 'stormbourne', roster: { artists: [storm] } });
+  assert.equal(fromRoster.source, 'roster');
+  assert.equal(fromRoster.match, 'artist-key');
+  assert.equal(fromRoster.canPreview, true);
+  assert.equal(fromRoster.profile.audiusUrl, 'https://audius.co/stormbourne');
+  assert.equal(fromRoster.profile.cardPath, '/wavid/card/stormbourne');
+  assert.equal(shouldFetchPublicRoster({ roster: { artists: [storm] }, handle: 'stormbourne' }), false);
+
+  const preferred = resolveCardArtist({ handle: 'stormbourne', artist: storm, roster: { artists: [ox] } });
+  assert.equal(preferred.source, 'artist');
+  assert.equal(preferred.artist.artistKey, storm.artistKey);
+  assert.equal(shouldFetchPublicRoster({ artist: storm, handle: 'delo.dark' }), false);
+
+  const fallback = resolveCardArtist({ handle: 'stormbourne', artist: ox, roster: { artists: [storm] } });
+  assert.equal(fallback.source, 'roster');
+  assert.equal(fallback.canPreview, true);
+
+  const blockedArtist = structuredClone(storm);
+  blockedArtist.eligibility = { canBirth: false, reason: 'Quick Battle record does not reconcile' };
+  const blocked = resolveCardArtist({ handle: 'stormbourne', roster: { artists: [blockedArtist] } });
+  assert.equal(blocked.canPreview, false);
+  assert.equal(blocked.reason, 'Quick Battle record does not reconcile');
+  assert.equal(blocked.profile.audiusUrl, 'https://audius.co/stormbourne');
+  assert.equal(cardFaceForArtist(blockedArtist).ok, false);
+  assert.equal(cardFaceForArtist(blockedArtist).payload, null);
+
+  for (const handle of ['_0xquan', '_0xQuan']) {
+    const direct = resolveCardArtist({ handle, roster: { artists: [ox] } });
+    assert.equal(direct.match, 'artist-key', handle);
+    assert.equal(direct.alias, false, handle);
+    assert.equal(direct.canPreview, true, handle);
+    assert.equal(direct.profile.handle, '_0xQuan');
+    assert.equal(direct.profile.artistKey, 'wavewarz:audius:_0xquan');
+    assert.equal(direct.profile.audiusUrl, 'https://audius.co/_0xQuan');
+    assert.equal(shouldFetchPublicRoster({ frozenArtists: [ox], handle }), false, handle);
+  }
+
+  const alias = resolveCardArtist({ handle: 'oxquan', roster: { artists: [ox] } });
+  assert.equal(alias.match, 'display-alias');
+  assert.equal(alias.alias, true);
+  assert.equal(alias.canPreview, true);
+  assert.equal(alias.artist.artistKey, 'wavewarz:audius:_0xquan');
+  assert.equal(alias.profile.handle, '_0xQuan');
+  assert.equal(alias.profile.cardPath, '/wavid/card/_0xQuan');
+  assert.equal(alias.profile.audiusUrl, 'https://audius.co/_0xQuan');
+  assert.equal(alias.route.artistKey, 'wavewarz:audius:oxquan');
+  assert.equal(shouldFetchPublicRoster({ frozenArtists: [ox], handle: 'oxquan' }), false);
+
+  const named = structuredClone(ox);
+  named.displayName = 'Other';
+  named.identity = { ...ox.identity, audiusHandle: 'oxquan' };
+  named.artistKey = 'wavewarz:audius:oxquan';
+  const exact = resolveCardArtist({ handle: 'oxquan', roster: { artists: [ox, named] } });
+  assert.equal(exact.match, 'artist-key');
+  assert.equal(exact.artist.artistKey, 'wavewarz:audius:oxquan');
+  assert.equal(exact.alias, false);
+
+  const ambiguous = resolveCardArtist({
+    handle: 'samename',
+    roster: {
+      artists: [
+        rosterForHandle('alpha_one', 'Same Name').artists[0],
+        rosterForHandle('beta_two', 'Same-Name').artists[0],
+      ],
+    },
+  });
+  assert.equal(ambiguous.canPreview, false);
+  assert.equal(ambiguous.match, 'ambiguous');
+  assert.equal(ambiguous.artist, null);
+  assert.match(ambiguous.reason, /Audius handle/);
+
+  assert.equal(shouldFetchPublicRoster({ frozenArtists: [ox], handle: 'stormbourne' }), true);
+  assert.equal(shouldFetchPublicRoster({ handle: 'stormbourne' }), true);
+  assert.equal(shouldFetchPublicRoster({ handle: 'bad handle' }), false);
+});
+
+test('wave code weaves arbitrary roster handles, not only frozen fixtures', () => {
+  const handles = ['stormbourne', 'Delo.Dark', 'Hurric4n3Ike', 'a'.repeat(WAVE_HANDLE_LIMIT)];
+  for (const handle of handles) {
+    const artist = rosterForHandle(handle).artists[0];
+    assert.equal(artist.eligibility.canBirth, true, handle);
+    const decision = resolveCardArtist({ handle, roster: { artists: [artist] } });
+    assert.equal(decision.canPreview, true, handle);
+    const face = cardFaceForArtist(artist);
+    assert.equal(face.ok, true, handle);
+    assert.equal(face.waveCode, WAVE_CODE_CONTRACT);
+    assert.equal(face.regions.qr, undefined);
+    assert.equal(face.handle, handle);
+    const layer = cardWaveLayer(face);
+    assert.equal(layer.contract, WAVE_CODE_CONTRACT);
+    assert.equal(layer.handle, handle);
+    const decoded = decodeWaveImage(paintBackdrop(layer), layer.width, layer.height);
+    assert.equal(decoded.ok, true, handle);
+    assert.equal(decoded.handle, handle);
+    const decisionFromArt = scanDecision({ wave: decoded, qrText: 'https://evil.example/steal' });
+    assert.equal(decisionFromArt.source, 'wave-code');
+    assert.equal(decisionFromArt.handle, handle);
+    assert.equal(decisionFromArt.artistKey, artist.artistKey);
+  }
+  const face = cardFaceForArtist(rosterForHandle('stormbourne').artists[0]);
+  assert.throws(() => cardWaveLayer({ ...face, regions: { ...face.regions, qr: { x: 1, y: 1, width: 8, height: 8 } } }), /QR square/);
 });
 
 test('card playback lists only this artist’s Audius track permalinks', async () => {

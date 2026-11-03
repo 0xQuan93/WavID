@@ -259,12 +259,13 @@ export function ScanRoute() {
   return <CardScan onResolve={(card) => router.push(card.cardPath)} />;
 }
 
-export function CardRoute({ handle, artist }) {
+export function CardRoute({ handle, artist, rosterSnapshot }) {
   const router = useRouter();
   return (
     <CardResolve
       handle={handle}
       artist={artist}
+      roster={rosterSnapshot}
       onScan={() => router.push('/wavid/scan')}
     />
   );
@@ -283,11 +284,48 @@ export function StudioRoute({ rosterSnapshot }) {
 ```
 
 `card.cardPath` is `/wavid/card/<encoded handle>`. `CardResolve` links to Audius
-only after `resolveAudiusProfile` accepts the handle. Pass `artist` when the
-host already has the public observation; otherwise the page still offers the
-profile link and says that no WavID preview is loaded. The standalone demo
-loads the frozen fixtures for the four example artists and does not call a new
-API. Do not add an authenticated WaveWarz API for this flow.
+only after `resolveAudiusProfile` accepts the handle. The handle in that path
+is `identity.audiusHandle`. Matching follows the studio after **Load roster**:
+`artistKey` is `wavewarz:audius:<handle>` with the handle lowercased using `en-US`.
+
+Hosts that embed `/wavid/card/:handle` should inject the live roster, or rely
+on the studio fallback below, so every birth-eligible WavID can show the
+material still. The printed face of that same artist weaves `wavid-wave-code/1`.
+
+Pass `artist` or `roster` when the host already has the observation. Those
+props win, and the page does not fetch over them. `roster` uses the same
+snapshot shape as `WavIdStudio`'s `initialRoster`. A matching `artist` is
+preferred when both are set. `loadRoster({ signal })` replaces the public
+loader and must return a normalized snapshot.
+
+When neither `artist` nor `roster` is set, `fixtureBaseUrl` still loads the
+four frozen examples first. That collection stays the fast offline path.
+If the path is absent from it, or no fixture base is set, the page calls
+`fetchPublicRoster` in `src/studio/roster.mjs` (the same public leaderboard
+loader as **Load roster**). Do not add an authenticated WaveWarz API for this
+flow.
+
+A birth-eligible match (`eligibility.canBirth`) can draw the material-v1 still.
+An artist on the roster who is not birth-eligible keeps `eligibility.reason`
+on the page. The page does not invent a material-v1 preview for that artist.
+
+OxQuan’s Audius handle is `_0xQuan`. The fixture and the card path are
+`/wavid/card/_0xQuan`, and `/wavid/card/_0xquan` matches the same artist key
+`wavewarz:audius:_0xquan`. The path `oxquan` is the display name. Its artist
+key would be `wavewarz:audius:oxquan`, which misses the fixture. When no
+artist key matches, and exactly one roster display name or Audius handle
+compacts to the same letters and digits, the page opens that artist and shows
+the real handle. `/wavid/card/oxquan` therefore opens OxQuan and links to
+`https://audius.co/_0xQuan`. The card path it names is `/wavid/card/_0xQuan`.
+An exact artist key wins when another artist shares the compacted name. Two
+compacted matches, with no artist key, stay unresolved.
+
+**Print WavID card** builds the portrait with `paintCardFace`, which weaves
+`wavid-wave-code/1` for that artist’s Audius handle. The face has no QR square.
+**Create identity kit** keeps the square still and its
+`wavid-browser-artifact/1.0` receipt on that still. For a birth-eligible artist
+the kit also includes `card.png`, that same woven face. **Download still**
+saves the square material frame.
 
 `cardPublicBaseUrl` must be an origin: `https://wavewarz.info` in production.
 `http` is accepted only for localhost and private-network hosts so a phone on

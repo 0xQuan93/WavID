@@ -1,5 +1,5 @@
 import { drawSvgToCanvas } from '../studio/files.mjs';
-import { renderWaveLayer } from './wave-code.mjs';
+import { WAVE_CODE_CONTRACT, renderWaveLayer } from './wave-code.mjs';
 
 function fitText(ctx, text, maxWidth) {
   const value = String(text || '');
@@ -26,15 +26,22 @@ function wrapText(ctx, text, maxWidth, maxLines) {
   return lines;
 }
 
-function paintWave(ctx, region, handle) {
-  const layer = renderWaveLayer(region.width, handle);
+export function cardWaveLayer(spec) {
+  if (!spec?.ok) throw new Error(spec?.reason || 'This artist cannot be printed as a WavID card.');
+  if (spec.waveCode !== WAVE_CODE_CONTRACT) throw new Error('A WavID card must carry a wavid-wave-code/1 layer.');
+  if (spec.regions?.qr) throw new Error('A WavID card does not include a QR square.');
+  return renderWaveLayer(spec.regions.art.width, spec.handle);
+}
+
+function paintWave(ctx, spec) {
+  const layer = cardWaveLayer(spec);
   const surface = document.createElement('canvas');
   surface.width = layer.width;
   surface.height = layer.height;
   const offscreen = surface.getContext('2d');
   if (!offscreen) throw new Error('Canvas export is unavailable in this browser.');
   offscreen.putImageData(new ImageData(layer.data, layer.width, layer.height), 0, 0);
-  ctx.drawImage(surface, region.x, region.y);
+  ctx.drawImage(surface, spec.regions.art.x, spec.regions.art.y);
 }
 
 export function paintCardFace(ctx, spec, artCanvas) {
@@ -62,7 +69,7 @@ export function paintCardFace(ctx, spec, artCanvas) {
   ctx.font = '22px ui-monospace, monospace';
   ctx.fillText(fitText(ctx, spec.handle, regions.title.width), regions.title.x, regions.title.y + 74);
 
-  paintWave(ctx, regions.art, spec.handle);
+  paintWave(ctx, spec);
 
   ctx.fillStyle = '#8c9d94';
   ctx.font = '18px ui-sans-serif, system-ui, sans-serif';
