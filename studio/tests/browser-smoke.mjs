@@ -166,7 +166,7 @@ try {
   await until(`document.querySelector('.notice')?.textContent.includes('Identity kit downloaded')`);
   const kitName=await downloaded(file=>file.endsWith('-wavid-kit.zip'));
   const members=storedZipMembers(await readFile(path.join(artifactDir,kitName)));
-  assert.equal(members.size,4);
+  assert.equal(members.size,5);
   const receipt=JSON.parse(members.get('receipt.json').toString('utf8'));
   const kitIdentity=JSON.parse(members.get('identity.json').toString('utf8'));
   const kitPng=members.get(receipt.artifact.filename);
@@ -184,6 +184,11 @@ try {
   assert.equal(receipt.claims.artistControlProven,false);
   assert.equal(parsePortableExport(kitIdentity).artist.artistKey,exported.artist.artistKey);
   assert.ok(members.has('READ-ME.txt'));
+  const cardPng=members.get('card.png');
+  assert.ok(cardPng,'Identity kit includes the woven card face');
+  assert.equal(cardPng.readUInt32BE(16),1080);
+  assert.equal(cardPng.readUInt32BE(20),1400);
+  assert.match(members.get('READ-ME.txt').toString('utf8'), /wavid-wave-code\/1/);
   await evaluate(`document.querySelector('[data-tab="history"]').click()`);
   await until(`!!document.querySelector('.history-detail .outline-button')`);
   await evaluate(`document.querySelector('.history-detail .outline-button').click()`);

@@ -61,9 +61,11 @@ about 43 MB on the initial Linux installation.
   the reproducible checkpoint; importing it verifies the entire file and
   regenerates its definition before accepting it.
 - **Create identity kit** packages a 1080 or 2160 square PNG, portable definition,
-  and unsigned receipt in one ZIP. The receipt hashes the exact PNG bytes and
+  and unsigned receipt in one ZIP. The receipt hashes the exact square PNG and
   records its source, definition, material, renderer version and displayed frame.
-  2160 stills keep the 1080 reference stroke weight and dash pitch.
+  2160 stills keep the 1080 reference stroke weight and dash pitch. When the
+  artist can birth a card, the kit also includes `card.png`: the portrait face
+  with `wavid-wave-code/1` woven for that Audius handle. There is no QR square.
 - **Print WavID card** downloads a portrait PNG of the frame on screen with the
   wave-code ring composited on the artwork, the portable definition, and a short
   readme. There is no QR square. The ring resolves to

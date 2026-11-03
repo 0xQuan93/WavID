@@ -1,9 +1,10 @@
-import React, { Component, useEffect, useMemo, useState } from 'react';
+import React, { Component, useEffect, useMemo, useRef, useState } from 'react';
 import { generateDefinition } from '../core/index.mjs';
 import { WavIdRenderer, usePreparedWavIdFrame } from '../renderer';
-import { loadFrozenRoster } from '../studio/roster.mjs';
+import { fetchPublicRoster, loadFrozenRoster } from '../studio/roster.mjs';
 import { CARD_POSTER_FRAME } from './face.mjs';
-import { handleFromArtist, resolveAudiusProfile } from './payload.mjs';
+import { findCardArtist, resolveCardArtist } from './match.mjs';
+import { resolveAudiusProfile } from './payload.mjs';
 import { resolveAudiusTrack, tracksForArtist } from './playback.mjs';
 
 class PreviewBoundary extends Component {
@@ -83,6 +84,7 @@ export function CardResolve({
   artist = null,
   roster = null,
   fixtureBaseUrl = null,
+  loadRoster = null,
   blockedReason = '',
   onScan,
   onStudio,
@@ -90,39 +92,80 @@ export function CardResolve({
   const resolved = resolveAudiusProfile(handle ? { handle } : { handle: '' });
   const failure = resolved.ok ? '' : (blockedReason || resolved.reason);
   const [loaded, setLoaded] = useState(null);
-  const [loadNote, setLoadNote] = useState('');
+  const [loadNote, setLoadNote] = useState(() => (artist || roster || !handle) ? '' : 'Loading the WavID observation…');
+  const heldRef = useRef(null);
+  const loadRosterRef = useRef(loadRoster);
+  loadRosterRef.current = loadRoster;
+
+  const snapshot = roster || loaded;
+  const decision = resolveCardArtist({
+    handle: resolved.ok ? resolved.handle : '',
+    artist,
+    roster: snapshot,
+  });
+  const matched = decision.artist;
+  const profile = decision.profile;
+  const canPreview = decision.canPreview;
+  const displayName = matched?.displayName || profile.handle || resolved.handle;
 
   useEffect(() => {
     const previous = document.title;
-    document.title = resolved.ok ? `${resolved.handle} · WavID card` : 'WavID card';
+    document.title = resolved.ok ? `${displayName} · WavID card` : 'WavID card';
     return () => { document.title = previous; };
-  }, [resolved.ok, resolved.handle]);
+  }, [resolved.ok, displayName]);
 
   useEffect(() => {
-    if (!resolved.ok || artist || roster || !fixtureBaseUrl) return undefined;
+    if (!resolved.ok || artist || roster) {
+      if (artist || roster) setLoadNote('');
+      return undefined;
+    }
+    const held = heldRef.current;
+    if (held && findCardArtist(held.artists, resolved)?.artist) {
+      setLoaded(held);
+      setLoadNote('');
+      return undefined;
+    }
     let disposed = false;
     const controller = new AbortController();
-    setLoadNote('Loading the frozen observation…');
-    loadFrozenRoster(fixtureBaseUrl, controller.signal).then((data) => {
+    (async () => {
+      let frozen = null;
+      if (fixtureBaseUrl) {
+        setLoadNote('Loading the frozen observation…');
+        try {
+          frozen = await loadFrozenRoster(fixtureBaseUrl, controller.signal);
+        } catch (error) {
+          if (disposed || error?.name === 'AbortError') return;
+        }
+        if (disposed) return;
+        if (frozen && findCardArtist(frozen.artists, resolved)?.artist) {
+          heldRef.current = frozen;
+          setLoaded(frozen);
+          setLoadNote('');
+          return;
+        }
+      }
       if (disposed) return;
-      setLoaded(data);
-      setLoadNote('');
-    }).catch((error) => {
-      if (disposed || error?.name === 'AbortError') return;
-      setLoadNote(error.message || 'The example collection could not be loaded.');
-    });
+      setLoadNote('Loading the WaveWarz roster…');
+      try {
+        const live = await (loadRosterRef.current || fetchPublicRoster)({ signal: controller.signal });
+        if (disposed) return;
+        heldRef.current = live;
+        setLoaded(live);
+        setLoadNote('');
+      } catch (error) {
+        if (disposed || error?.name === 'AbortError') return;
+        if (frozen) {
+          heldRef.current = frozen;
+          setLoaded(frozen);
+        }
+        setLoadNote(error.message || 'The public roster could not be loaded.');
+      }
+    })();
     return () => {
       disposed = true;
       controller.abort();
     };
-  }, [resolved.ok, resolved.artistKey, artist, roster, fixtureBaseUrl]);
-
-  const snapshot = roster || loaded;
-  const matched = artist && handleFromArtist(artist)?.toLocaleLowerCase('en-US') === resolved.handle?.toLocaleLowerCase('en-US')
-    ? artist
-    : snapshot?.artists?.find((entry) => entry.artistKey === resolved.artistKey && handleFromArtist(entry)) || null;
-  const canPreview = Boolean(matched?.eligibility?.canBirth && handleFromArtist(matched));
-  const displayName = matched?.displayName || resolved.handle;
+  }, [resolved.ok, resolved.handle, resolved.artistKey, artist, roster, fixtureBaseUrl]);
 
   return <div className="wavid-card">
     <header className="card-top">
@@ -144,15 +187,18 @@ export function CardResolve({
     {resolved.ok && <>
       {canPreview && <CardArt artist={matched} roster={snapshot} />}
       {!canPreview && <div className="card-empty" role="status">
-        <p>{matched
-          ? (matched.eligibility?.reason || 'This artist is not eligible for a material-v1 preview.')
-          : (loadNote || 'No WavID observation is loaded for this handle. The profile link uses only the handle in the card URL.')}</p>
+        <p>{decision.artist
+          ? (decision.reason || 'This artist is not eligible for a material-v1 preview.')
+          : (decision.reason || loadNote || 'No WavID observation is loaded for this handle. The profile link uses only the handle in the card URL.')}</p>
       </div>}
-      <p className="card-handle">{resolved.handle}</p>
-      <p className="card-key">{resolved.artistKey}</p>
-      <CardPlayer artist={matched} handle={resolved.handle} />
-      <a className="primary-button card-cta" href={resolved.audiusUrl}>Open Audius profile</a>
-      <p className="card-target">{resolved.audiusUrl}</p>
+      {decision.alias && profile.ok && <p className="card-note">
+        {matched?.displayName || profile.handle}’s Audius handle is {profile.handle}. This page opened it from the path {decision.route.handle}. The card path is {profile.cardPath}.
+      </p>}
+      <p className="card-handle">{profile.handle}</p>
+      <p className="card-key">{profile.artistKey}</p>
+      <CardPlayer artist={matched} handle={profile.handle} />
+      <a className="primary-button card-cta" href={profile.audiusUrl}>Open Audius profile</a>
+      <p className="card-target">{profile.audiusUrl}</p>
       <p className="card-note">Public observation. This page does not prove control of the artist, and it does not invent a profile when the handle is missing.</p>
     </>}
   </div>;

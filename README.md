@@ -11,6 +11,7 @@ The studio turns public WaveWarz observations into deterministic material-v1
 forms on the visitor's device. It includes a live roster view, inspectable
 history and fingerprints, portable definitions, and PNG identity kits with
 exact-artifact receipts. Eligible artists can also export a WavID card whose artwork carries the link.
+A birth-eligible identity kit includes that same card face, with `wavid-wave-code/1` woven for the artist’s Audius handle.
 Scanning that image opens `https://wavewarz.info/wavid/card/<handle>`, which
 links to the artist's Audius profile and can play their public songs on the
 page. A delayed battle strip can show the two current
