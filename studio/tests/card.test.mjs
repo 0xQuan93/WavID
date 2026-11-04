@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { artistKeyFromMusicLink } from '../src/battle/observe.mjs';
-import { normalizeRoster } from '../src/core/index.mjs';
+import { describeProvenance, generateDefinition, normalizeRoster } from '../src/core/index.mjs';
+import { buildAnatomyCallouts, readCardIdentity, visibleCallouts } from '../src/card/callouts.mjs';
 import { cardFaceForArtist, cardFaceLayout, cardKitReadme } from '../src/card/face.mjs';
 import { resolveCardArtist, shouldFetchPublicRoster } from '../src/card/match.mjs';
 import { cardWaveLayer } from '../src/card/render-card.mjs';
@@ -563,6 +564,109 @@ test('wave code weaves arbitrary roster handles, not only frozen fixtures', () =
   }
   const face = cardFaceForArtist(rosterForHandle('stormbourne').artists[0]);
   assert.throws(() => cardWaveLayer({ ...face, regions: { ...face.regions, qr: { x: 1, y: 1, width: 8, height: 8 } } }), /QR square/);
+});
+
+test('card resolve keeps the material still as the focal plane and the HUD as glass', async () => {
+  const jsx = await readFile(new URL('../src/card/CardResolve.jsx', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/styles.css', import.meta.url), 'utf8');
+  const scan = await readFile(new URL('../src/card/CardScan.jsx', import.meta.url), 'utf8');
+  assert.match(jsx, /className="wavid-card card-focal" data-layout="id-focal"/);
+  assert.match(jsx, /className="card-stage"/);
+  assert.match(jsx, /className="card-hud"/);
+  assert.match(jsx, /className="card-art"/);
+  assert.match(jsx, /className="card-art-frame"/);
+  assert.match(jsx, /card-glass/);
+  assert.match(jsx, /WavIdRenderer/);
+  assert.match(jsx, /Open Audius profile/);
+  assert.match(jsx, /Public observation\. This page does not prove control of the artist/);
+  assert.match(jsx, /className="card-handle"/);
+  assert.match(jsx, /className="card-key"/);
+  assert.match(jsx, /className="card-identity"/);
+  assert.match(jsx, /className="card-stream card-glass"/);
+  assert.match(jsx, /Host-supplied/);
+  assert.match(jsx, /onPointerDown/);
+  assert.match(jsx, /onPointerUp/);
+  assert.match(jsx, /onFocus/);
+  assert.match(jsx, /pointerType === 'touch'/);
+  assert.match(jsx, /buildAnatomyCallouts/);
+  assert.doesNotMatch(jsx, /111,535/);
+  assert.doesNotMatch(jsx, /totalEarningsSol/);
+  assert.match(jsx, /<CardPlayer /);
+  assert.doesNotMatch(scan, /card-focal/);
+  assert.match(scan, /className="wavid-card"/);
+
+  const focalStart = css.indexOf('.wavid-card.card-focal {');
+  assert.ok(focalStart > css.indexOf('.wavid-card .card-art {'), 'focal rules override the thumbnail box');
+  const focal = css.slice(focalStart);
+  const glass = focal.match(/--card-glass:\s*rgba\(\s*7\s*,\s*14\s*,\s*12\s*,\s*([0-9.]+)\s*\)/);
+  assert.ok(glass, 'focal glass fill is declared');
+  assert.ok(Number(glass[1]) > 0 && Number(glass[1]) <= 0.2, 'glass fill stays near-transparent');
+  assert.match(focal, /--card-glass-line:\s*rgba\(188,\s*241,\s*207,\s*0\.42\)/);
+  const artRule = focal.slice(focal.indexOf('.wavid-card.card-focal .card-art {'), focal.indexOf('.wavid-card.card-focal .card-art-frame'));
+  assert.match(artRule, /overflow:\s*visible/);
+  assert.match(artRule, /border:\s*0/);
+  assert.match(artRule, /background:\s*transparent/);
+  assert.doesNotMatch(artRule, /420px/);
+  assert.doesNotMatch(artRule, /object-fit:\s*cover/);
+  const frameRule = focal.slice(focal.indexOf('.wavid-card.card-focal .card-art-frame {'), focal.indexOf('.wavid-card.card-focal .card-art-frame svg'));
+  assert.match(frameRule, /aspect-ratio:\s*1/);
+  assert.match(frameRule, /overflow:\s*visible/);
+  assert.match(focal, /object-fit:\s*contain/);
+  assert.match(focal, /prefers-reduced-motion:\s*reduce/);
+  assert.match(focal, /prefers-reduced-transparency:\s*reduce/);
+  assert.match(css, /\.wavid-card \.viewfinder/);
+});
+
+test('anatomy callouts follow the song-to-band ledger and skip settlement inventions', async () => {
+  const bundle = JSON.parse(await readFile(new URL('../public/fixtures/oxquan.json', import.meta.url), 'utf8'));
+  const artist = bundle.source.artist;
+  const before = JSON.stringify(artist);
+  const definition = generateDefinition(artist, {
+    checkedAt: bundle.source.rosterCheckedAt,
+    rosterSnapshotSha256: bundle.source.rosterSnapshotSha256,
+    sources: bundle.source.sources,
+  });
+  assert.equal(JSON.stringify(artist), before);
+  const provenance = describeProvenance(definition, 'frozen');
+  const callouts = buildAnatomyCallouts(definition);
+  const bands = callouts.filter((entry) => entry.kind === 'band');
+  assert.equal(bands.length, provenance.bandAssignments.length);
+  assert.ok(bands.length > 0);
+  const ranked = [...artist.songs].sort((a, b) => b.totalVolumeSol - a.totalVolumeSol || a.musicLink.localeCompare(b.musicLink));
+  for (let index = 0; index < bands.length; index += 1) {
+    assert.equal(bands[index].songTitle, provenance.bandAssignments[index].songTitle);
+    assert.equal(bands[index].volumeSol, provenance.bandAssignments[index].volumeSol);
+    assert.equal(bands[index].battles, provenance.bandAssignments[index].battles);
+    assert.equal(bands[index].wins, ranked[index % ranked.length].wins);
+    assert.equal(bands[index].losses, ranked[index % ranked.length].losses);
+    assert.ok(bands[index].anchor.x >= 0 && bands[index].anchor.x <= 1080);
+    assert.ok(bands[index].anchor.y >= 0 && bands[index].anchor.y <= 1080);
+    assert.equal(JSON.stringify(bands[index]).includes('totalEarnings'), false);
+  }
+  const node = callouts.find((entry) => entry.kind === 'node');
+  const cavity = callouts.find((entry) => entry.kind === 'cavity');
+  assert.equal(node.battles, artist.quickBattle.battles);
+  assert.equal(node.wins, artist.quickBattle.wins);
+  assert.equal(node.losses, artist.quickBattle.losses);
+  assert.equal(cavity.winRate, artist.quickBattle.winRate);
+  assert.equal(cavity.songs, artist.quickBattle.indexedSongs);
+  assert.equal(cavity.volumeSol, artist.quickBattle.totalVolumeSol);
+  const revealed = visibleCallouts(callouts, 'form').map((entry) => entry.kind);
+  assert.deepEqual(revealed, ['band', 'node', 'cavity']);
+  assert.equal(visibleCallouts(callouts, 'band:1')[0].id, 'band:1');
+  assert.equal(visibleCallouts(callouts, null).length, 0);
+  const identity = readCardIdentity(artist);
+  assert.equal(identity.x, null);
+  assert.equal(identity.avatar.startsWith('https://'), true);
+  assert.equal(identity.main, null);
+  const god = JSON.parse(await readFile(new URL('../public/fixtures/godcloud.json', import.meta.url), 'utf8')).source.artist;
+  const godIdentity = readCardIdentity(god);
+  assert.equal(godIdentity.x.url, 'https://x.com/therealgodcloud');
+  assert.equal(godIdentity.x.handle, 'therealgodcloud');
+  assert.equal(godIdentity.main.wins, god.mainEvent.wins);
+  assert.equal(godIdentity.main.losses, god.mainEvent.losses);
+  assert.equal(Object.hasOwn(godIdentity.main, 'totalEarningsSol'), false);
+  assert.equal(JSON.stringify(callouts).includes(String(god.mainEvent.totalEarningsSol)), false);
 });
 
 test('card playback lists only this artist’s Audius track permalinks', async () => {

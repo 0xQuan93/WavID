@@ -243,7 +243,44 @@ Credentials in a URL are rejected.
 WaveWarz.info should mount the React pages on real paths and pass the public
 origin into the studio. The scanner and the card page are client components.
 Give them the same stylesheet (`src/styles.css`); card screens are scoped to
-`.wavid-card`.
+`.wavid-card`. `CardResolve` adds `card-focal` so the material-v1 still is the
+picture and the chrome is a glass HUD. `CardScan` stays on the plain card column.
+
+### Full ID as the focal plane
+
+Use this layout on any host surface that shows a material-v1 identity, including
+the wavewarz.info Intelligence artist page. Fans read an ID as a language,
+including changes that appear after battles, so the still has to be the full
+square and the largest thing in the view. `CardResolve` does that with
+`.wavid-card.card-focal`:
+
+- `.card-art` / `.card-art-frame` hold the uncropped 1080×1080 still, sized to
+  the largest square that fits the card. It is not an inset thumbnail.
+- The default view stays quiet. Hovering the still (or holding a finger on it)
+  reveals three phosphor callouts: the loudest song band, battle activity on a
+  node, and win ratio on a cavity. Focusing or holding one band, node, or
+  cavity reveals that structure. Releasing a touch, or leaving with the
+  pointer, clears the callout. Keyboard focus does the same. Reduced motion
+  skips transitions; the label still appears.
+- `buildAnatomyCallouts` in `src/card/callouts.mjs` joins `props.anatomy` to the
+  same ranked-song order as `describeProvenance`. A band label is that song’s
+  title, Quick Battle volume, and win/loss record. A node label is aggregate
+  battle activity. A cavity label is the Quick Battle win ratio and catalog
+  size. Those are the inputs material-v1 already uses. The lines are a view of
+  the anatomy points. They do not change seeds, formulas, or hashes.
+- The X handle, when `identity.xHandle` is a real handle, and the avatar
+  (`profile.imageUrl`, https only) sit at the bottom-left, above the stream
+  strip. If no X handle was observed, the Audius handle is shown and is not
+  labeled as X.
+- The stream strip is marked **Host-supplied**. This card does not invent a
+  Spotify stream count, settlement bonus, or earnings figure. A matched Main
+  Event win/loss record can be named underneath, with the note that it does
+  not shape the ID.
+
+Redeploy `src/card/` and `src/styles.css` together. On Intelligence, mirror the
+full-bleed still, the bottom-left handle and avatar, and these anatomy-linked
+callouts. Fill the stream strip from settlement data there. Do not copy a
+made-up stream count out of the card module.
 
 ```jsx
 'use client';
